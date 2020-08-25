@@ -1,0 +1,9 @@
+<toolSet name="External Tools">
+  <tool name="Autopep8" showInMainMenu="false" showInEditor="false" showInProject="false" showInSearchPopup="false" disabled="false" useConsole="true" showConsoleOnStdOut="false" showConsoleOnStdErr="false" synchronizeAfterRun="true">
+    <exec>
+      <option name="COMMAND" value="K:\KiBoNoHana\MangaHeper_Python\Scripts\autopep8.exe" />
+      <option name="PARAMETERS" value="--in-place --aggressive --ignore=E123,E133,E50 $FilePath$" />
+      <option name="WORKING_DIRECTORY" value="K:/KiBoNoHana/MangaHeper_Python/Scripts" />
+    </exec>
+  </tool>
+</toolSet>
