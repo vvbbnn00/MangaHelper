@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+	<head>
+	<link rel="stylesheet" type="text/css" href="static/css/login.css">
+	<meta charset="utf-8">
+	<title>登录-Manga Helper</title>
+	</head>
+	<div id="login" name="login">
+			<form name="form" action="" method="post">
+				<h1>登录页面</h1>	
+				<p><input type="text" name="user" id="user" placeholder="用户名"></p>
+				<p><input type="password" name="pass" id="pwd" placeholder="密码"></p>
+				<p><input id="btn_login" type="button" value="登录" onclick="f()" />
+			</form>
+	</div>
+
+	<script>
+	  function f(){
+		var username = document.getElementById('user').value;
+		var passwd = document.getElementById('pwd').value;
+		window.location.href=("/login?user=" + username + "&pass=" + passwd);
+	  }
+	</script>
+</html>

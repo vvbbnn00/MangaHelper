@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<!--在这里总共用到了一下变量 emailmd5 username authorization email authcolor s_host s_port s_pass kindle_email-->
+<html>
+<head>	
+	<link rel="stylesheet" href="static/css/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/user.css">
+	<meta charset="utf-8">
+	<title>用户中心-Manga Helper</title>
+</head>
+	<div id="userpanel">
+		<div id="gravatar_id">
+			<img id="gravatar" src="https://cdn.v2ex.com/gravatar/{{ emailmd5 }}">
+			<div id="user">{{ username }}</div>
+			<div id="auth" style="background-color: rgb(150, 210, 72);">{{ authorization }}</div>
+			<div> <input type="button" id="btn_logout" onclick="logout()" value="退出登录"></div>
+		</div>
+		<div id="userinfo">
+			<div id="title_id">邮箱信息</div>
+			<div id="info">
+				<i class="social fa fa-envelope" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input type="text" name="email" id="input" placeholder="邮箱地址" value="{{ email }}">
+			</div>
+			<div id="info">
+				<i class="social fa fa-server" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input type="text" name="s_host" id="input" placeholder="SMTP服务器" value="{{ s_host }}">
+			</div>
+			<div id="info">
+				<i class="social fa fa-sitemap" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input type="text" name="s_port" id="input" placeholder="SMTP端口" value="465" readonly="readonly">
+			</div>
+			<div id="info">
+				<i class="social fa fa-key" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input type="password" name="s_pass" id="input" placeholder="邮箱密码" value="{{ s_pass }}">
+			</div>
+			<div id="info">
+				<i class="social fa fa-envelope" style="font-size:25px;font-weight:normal;color:red;"></i>
+				<input type="text" name="kindle_email" id="input" placeholder="Kindle邮箱" value="{{ kindle_email }}">
+			</div>
+			<div> <input type="button" id="btn_submit" onclick="c_email()" value="提交修改"></div>
+			<div> <input type="button" id="btn_test" onclick="test_email()"value="测试邮件"></div>
+		</div>
+		<div id="toolbox">
+			<div id="title_id">工具箱</div>
+			<div id="info">
+				<i class="social fa fa-search" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input onkeydown="key_search()" type="text" name="search" id="input" placeholder="回车键搜索（存在bug）">
+			</div>
+			<div id="info">
+				<i class="social fa fa-cloud-download" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>
+				<input onkeydown="key_download()" type="text" name="download" id="input" placeholder="输入地址，回车键下载">
+			</div>
+			<br>
+			<div id="title_id">
+				下载设置
+			</div>
+			<div id="scale">
+				从第<input type="text" name="start" id="smallinput" placeholder="">章，至第<input type="text" name="end" id="smallinput" placeholder="">章<br>
+				<input id="check" name="sendemail" type="checkbox" checked /><label>发送邮箱</label>
+				<input id="check" name="merge" type="checkbox" checked /><label>合并</label>
+				<input id="check" name="all" type="checkbox"  /><label>全部下载</label>
+			</div>
+		</div>
+	</div>
+	<div id="help">
+		<p>说明：若要将文件发送至kindle，则必须在邮箱信息中填写正确的邮箱（即已经在亚马逊官网设置好，并能够正常发送接收的邮箱）灰色图标处填写发送信箱，红色图标处填写kindle信箱。建议在设置前先点击【提交修改】，然后【测试邮件】，耐心等待，若显示OK，则是可以正常使用的邮箱。<br>
+		关于搜索功能：目前搜索功能存在bug，很大几率无法显示结果，建议直接复制漫画链接下载。<br>
+		关于下载功能：首先，在文本框中粘贴漫画的链接，接着，填写下载范围（或直接勾选全部下载），最后按回车键即可进入下载页面。注意：这里的下载范围是指[Sid]的范围，要得知[Sid]，首先可以不填写范围（不勾选全部下载），只填写链接查看章节目录。<br>
+		[合并]功能会将范围内的章节合并为1个文档然后发送，请确认大小小于50M，超出50M的部分会进行分段发送。
+		</p>
+	</div>
+
+	<script>
+		function logout(){
+			window.location.href=("/logout");
+		}
+		function c_email(){
+		    var email = document.getElementsByName('email')[0].value;
+			var s_host = document.getElementsByName('s_host')[0].value;
+			var s_port = document.getElementsByName('s_port')[0].value;
+			var s_pass = document.getElementsByName('s_pass')[0].value;
+			var kindle_email = document.getElementsByName('kindle_email')[0].value;
+			window.location.href=("/changeemail?email="+email+"&s_host="+s_host+"&s_port="+s_port+"&s_pass="+s_pass+"&kemail="+kindle_email);
+		}
+		function test_email(){
+		    var email = document.getElementsByName('email')[0].value;
+			var s_host = document.getElementsByName('s_host')[0].value;
+			var s_port = document.getElementsByName('s_port')[0].value;
+			var s_pass = document.getElementsByName('s_pass')[0].value;
+			window.location.href=("/testemail?email="+email+"&s_host="+s_host+"&s_port="+s_port+"&s_pass="+s_pass);
+		}
+		function key_search() {
+			if (event.keyCode == "13") {
+				var search = document.getElementsByName('search')[0].value;
+				window.location.href=("/search?text="+search+"&page=1");
+			}
+		}
+		function key_download() {
+			if (event.keyCode == "13") {
+				var url = document.getElementsByName('download')[0].value;
+				var from = document.getElementsByName('start')[0].value;
+				var to = document.getElementsByName('end')[0].value;
+				var all = document.getElementsByName('all')[0].checked;
+				var sendmail = document.getElementsByName('sendemail')[0].checked;
+				var merge = document.getElementsByName('merge')[0].checked;
+				window.location.href=("/download?url="+url+"&from="+from+"&to="+to+"&all="+all+"&sendmail="+sendmail+"&merge="+merge);
+			}
+		}
+	</script>
+</html>

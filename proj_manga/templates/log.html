@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+
+<!--在这里总共用到了一下变量 emailmd5 username authorization email authcolor s_host s_port s_pass kindle_email-->
+<html>
+
+<head>	
+	<link rel="stylesheet" type="text/css" href="static/css/log.css">
+	<meta charset="utf-8">
+	<title>任务日志-{{ logid }}</title>
+</head>
+	<h1>当前日志：{{ logid }}</h1>
+	<div id="logpanel">
+{% autoescaping false %}
+		{{ log }}
+{% endautoescape %}
+	</div>
+
+	<script>
+		function myrefresh(){
+			window.location.href=window.location.href;
+			window.location.reload();
+		}
+		setTimeout('myrefresh()',1000); //指定1秒刷新一次
+	</script>
+</html>

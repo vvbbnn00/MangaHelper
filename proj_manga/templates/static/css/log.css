@@ -1,0 +1,49 @@
+	body,p,div,ul,li,h1,h2,h3,h4,h5,h6{
+		margin:0;
+		padding: 0;
+	}
+	body{
+		background: #E9E9E9; 
+		text-align:center;
+	}
+	h1{
+		top:40px;
+		position: relative;
+		color:#6F6F6F;	
+		font-size:25px;
+		font-weight:bold;
+	}
+	#logpanel{
+		display: inline-block;
+		width: 800px;
+		background: #FFF;
+		position: relative;
+		margin:70px auto;
+		border-radius: 20px;
+		padding-right: 20px;
+		padding-left: 20px;
+		padding-top: 10px;
+		padding-bottom: 20px;
+		box-shadow: 10px 10px 10px #CCCCCC;
+	}
+	#log{
+		padding-left: 20px;
+		line-height:35px;
+		text-align: left;
+	}
+	#log:nth-child(1){
+		border-top-left-radius:20px;
+		border-top-right-radius:20px;
+	}
+	#log:nth-last-child(1){
+		border-bottom-left-radius:20px;
+		border-bottom-right-radius:20px;
+	}
+	#log:nth-child(odd){
+		color:#6F6F6F;
+		background:#EEEEEE;
+	}
+	#log:nth-child(even){
+		background:#AAAAAA;
+		color:#EEEEEE;
+	}
