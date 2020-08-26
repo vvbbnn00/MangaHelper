@@ -1,5 +1,10 @@
+from proj_manga import mod_email
+from proj_manga.mod_dmzjsearch import Search_dmzj
 from proj_manga.mod_imports import *
+from flask import *
+from proj_manga import app
 # <!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
+from proj_manga.mod_mysql import *
 
 html_index = "index.html"
 html_logout = "logout.html"
@@ -7,7 +12,7 @@ html_loginform = "login.html"
 html_loginformerr = "loginfail.html"
 html_user = "user.html"
 html_log = "log.html"
-
+html_loglist = "loglist.html"
 
 def userpage(token):
     user = GetUser(GetUsername(token))
@@ -126,7 +131,10 @@ def download():
     sendmail = request.args['sendmail']
     merge = request.args['merge']
     logid = CreateTask(url, start, end, all, sendmail, merge, token)
-    return redirect('/getlog?logid=%s' % (logid))
+    if logid == -1:
+        return "创建下载任务失败！"
+    else:
+        return redirect('/getlog?logid=%s' % (logid))
     # return str(all)
     # except Exception as e:
     #    return "Failed: %s" % (e)
@@ -142,7 +150,66 @@ def getlog():
             logid = request.args['logid']
             result = GetLog(logid, token)
             return render_template(html_log, logid=logid, log=result)
+        except KeyError as e:
+            return "请求日记失败: 请求格式错误！"
         except Exception as e:
-            return "请求日记失败: %s" % (e)
+            return "请求日记失败: Unexpected Error <br> %s" % (e)
 
-# "/download?url="+url+"&from="+from+"&to="+to+"&all="+all+"&sendmail="+sendmail+"&merge="+merge
+@app.route('/getloglist')
+def getloglist():
+    if not checkforlogin():
+        return redirect('/login')
+    #try:
+    token = session['token']
+    list = GetLogListFromToken(token)[::-1]
+    text = ""
+    for item in list:
+        username = item[0]
+        logid = item[1]
+        datetime = item[2].strftime('%Y-%m-%d %X')
+        status = item[3]
+        text += """
+        <tr>
+            <td><div id="%s">%s</div></td>
+			<td>%s</td>
+			<td>%s</td>
+			<td>%s</td>
+			<td><a href="/getlog?logid=%s">查看日志</a></td>
+		</tr>"""\
+                %(status, status, username, logid, datetime, logid)
+    return render_template(html_loglist, table=text)
+    #except Exception as e:
+    #    return e
+
+@app.route('/getdownlist')
+def getdownlist():
+    if not checkforlogin():
+        return redirect('/login')
+    #try:
+    token = session['token']
+    logid = request.args['logid']
+    result = GetLogSingle(logid, token)
+    text = ""
+    if result != -1:
+        path = get_value("Output_Dir")+logid
+        list = os.listdir(path)
+        for item in list:
+            text += """
+                <dir id="download"> <a href="%s">%s</a> </dir>
+            """ % (item, item)
+    return text
+
+@app.route('/requestfile')
+def requestfile():
+    if not checkforlogin():
+        return redirect('/login')
+    #try:
+    token = session['token']
+    logid = request.args['logid']
+    filename = request.args['file']
+    result = GetLogSingle(logid, token)
+    try:
+        path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
+        return send_file(path, attachment_filename=filename)
+    except Exception as e:
+        return "下载文件失败"

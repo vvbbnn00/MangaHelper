@@ -1,6 +1,8 @@
 from proj_manga.mod_imports import *
-
-mod_init.init()
+from proj_manga.mod_init import init
+# noinspection PyUnresolvedReferences
+from flask import Flask
+init()
 app = Flask(__name__)
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True

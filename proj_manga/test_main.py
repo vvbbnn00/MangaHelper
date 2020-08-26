@@ -1,4 +1,5 @@
-from proj_manga.mod_imports import *
+from proj_manga import init
+from proj_manga.mod_dmzjsearch import printerrorlist, Analyze_dmzj
 
 if __name__ == '__main__':
     init()

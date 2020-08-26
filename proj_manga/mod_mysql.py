@@ -1,4 +1,9 @@
+import _thread
+import hashlib
+
 from proj_manga.mod_imports import *
+from proj_manga.mod_safety import pass_hash, s_passencrypt
+from proj_manga.mod_settings import get_value
 
 Mysql_host = get_value("Mysql_host")
 Mysql_pass = get_value("Mysql_pass")
@@ -30,8 +35,9 @@ def initialize():
     cursor.execute("DROP TABLE IF EXISTS MANGA_DOWNLOAD")
     database = """CREATE TABLE MANGA_DOWNLOAD (
                 USER CHAR(255) NOT NULL,
-                LOGID CHAR(255) NOT NULL,
-                TIME DATETIME NOT NULL
+                LOGID CHAR(255) NOT NULL PRIMARY KEY,
+                TIME DATETIME NOT NULL,
+                STATUS CHAR(255) NOT NULL
               )"""
     cursor.execute(database)
     db.close()
@@ -122,12 +128,9 @@ def GetUsername(token):
 
 
 def CreateTask(url, start, end, all, sendmail, merge, token):
+    from proj_manga.mod_dmzjsearch import Analyze_dmzj
     username = GetUsername(token)
-    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
-    cursor = db.cursor()
     logid = "downlog_" + username + "_" + time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
-    sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME)
-                 VALUES ('%s', '%s', '%s')""" % (username, logid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     if (start == "") or (end == ""):
         downlist = []
     else:
@@ -138,15 +141,65 @@ def CreateTask(url, start, end, all, sendmail, merge, token):
         elif all == "false":
             all = False
         else:
-            return "变量有误:all"
-        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid + ".log"))
+            return -1
+        db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+        cursor = db.cursor()
+        sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
+                     VALUES ('%s', '%s', '%s', '%s')""" % (
+        username, logid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "running")
+        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid))
         cursor.execute(sql)
         db.close()
         return logid
     except Exception as e:
         db.close()
-        return "Error: 无法启动线程 %s" % e
+        return e
 
+def SetLogStatus(logid, status):
+    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+    cursor = db.cursor()
+    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
+    cursor.execute(sql)
+    result = cursor.fetchone()
+    user = result[0]
+    time = result[2]
+    sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
+                 VALUES ('%s', '%s', '%s', '%s')""" % (
+        user, logid, time, status)
+    cursor.execute(sql)
+    db.close()
+    return 0
+
+def GetLogSingle(logid, token):
+    # try:
+    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+    cursor = db.cursor()
+    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
+    cursor.execute(sql)
+    result = cursor.fetchone()
+    db.close()
+    if result == None:
+        return -1
+    user = GetUser(GetUsername(token))
+    if (result[0] != user['username']) and (user['authorization'] != "管理员"):
+        return -1
+    log = {}
+    log['username'] = result[0]
+    log['logid'] = result[1]
+    log['time'] = result[2]
+    log['status'] = result[3]
+    return log
+
+def GetLogListFromToken(token):
+    # try:
+    username = GetUsername(token)
+    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+    cursor = db.cursor()
+    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE USER = '%s'" % (username)
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    db.close()
+    return result[::-1]
 
 def GetLog(logid, token):
     # try:
@@ -156,6 +209,8 @@ def GetLog(logid, token):
     cursor.execute(sql)
     result = cursor.fetchone()
     db.close()
+    if result == None:
+        return "没有找到这个日记"
     user = GetUser(GetUsername(token))
     if (result[0] != user['username']) and (user['authorization'] != "管理员"):
         return "您没有权限访问其他人的日记"
@@ -175,7 +230,10 @@ if __name__ == '__main__':
     # print(GetUser("admin"))
     # print(CheckUser("admin", "faL1p9n3dP"))
     # print(GetUsername(CheckUser("admin", "faL1p9n3dP")))
-    # print(GetUsername("11111"))
     # print(CreateTask("https://manhua.dmzj.com/huiyedaxiaojiexiangrangwogaobaitiancaimendelianait", "", "", "false","","",CheckUser("admin", "faL1p9n3dP")))
+    # print(GetLogListFromToken(CheckUser("admin", "faL1p9n3dP")))
+    # print(SetLogStatus("downlog_admin_20200826160607", "complete"))
+    # print(GetLogStatus("downlog_admin_20200826160607", CheckUser("admin", "faL1p9n3dP")))
     # while 1:
+    #     pass
     pass

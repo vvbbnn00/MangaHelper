@@ -55,8 +55,4 @@ from binascii import b2a_hex, a2b_hex
 # noinspection PyUnresolvedReferences
 from Crypto.Cipher import AES
 # noinspection PyUnresolvedReferences
-from flask import *
-# noinspection PyUnresolvedReferences
-from .mod_mysql import *
-# noinspection PyUnresolvedReferences
-from proj_manga import *
+import hashlib

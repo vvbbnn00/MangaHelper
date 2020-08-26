@@ -1,9 +1,12 @@
+#import logging
 from proj_manga.mod_imports import *
+from proj_manga.mod_pic2pdf import folder2pdf, Downpic
+from proj_manga.mod_settings import get_value
+from proj_manga.mod_mysql import SetLogStatus
 
 ua = UserAgent()
 errorlist = list()
 import time
-
 
 class html_logclass():
     def __init__(self, filename):
@@ -79,49 +82,46 @@ def Search_dmzj(text, page):
 
 
 def Analyze_dmzj(url, ext, downloadlist, downloadall, logid):
-    logmini = html_logclass(get_value("Log_Dir") + logid)
-    print(get_value("Log_Dir") + logid)
-    tempdir = get_value("Temp_Dir")
-    outdir = get_value("Output_Dir")
-    logmini.info("正在下载地址" + url)
-    logging.info(url)
-    headers = {"User-Agent": ua.random}
-    logging.info("尝试获取网页数据")
-    logmini.info("尝试获取网页数据")
-    response = requests.get(url=url, headers=headers)
-    if response.status_code != 200:
-        logmini.error("您输入的URL地址不合法！")
-        logging.error("您输入的URL地址不合法！")
-        logmini.error("响应状态" + str(response.status_code))
-        logging.error("响应状态" + str(response.status_code))
-        return
-    html = response.text
-    response.close()
-    rooturl = url.split('/')[2]
-    soup = BeautifulSoup(html, "html.parser")
-    title = soup.find("span", class_="anim_title_text")
-    logmini.info("作品名称：" + title.getText())
-    logging.info("作品名称：" + title.getText())
-    category = soup.find_all("div", class_="cartoon_online_border")
-    id = 0
-    for subcategory in category:
-        id += 1
-        logmini.info("第" + str(id) + "页")
-        logging.info("第" + str(id) + "页")
-        list = subcategory.find_all("li")
-        sid = 0
-        for item in list:
-            sid += 1
-            logmini.info("Sid:" + str(sid) + "  " + item.find("a").getText())
-            logging.info("Sid:" + str(sid) + "  " + item.find("a").getText())
-            referlink = "https://" + rooturl + item.a['href']
-            logmini.info("链接：" + referlink)
-            logging.info("链接：" + referlink)
-            if (sid in downloadlist) or (downloadall):
-                Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini)
+    try:
+        logmini = html_logclass(get_value("Log_Dir") + logid + ".log")
+        tempdir = get_value("Temp_Dir")
+        outdir = get_value("Output_Dir")
+        logmini.info("正在下载地址" + url)
+        headers = {"User-Agent": ua.random}
+        logmini.info("尝试获取网页数据")
+        response = requests.get(url=url, headers=headers, timeout=20)
+        if response.status_code != 200:
+            logmini.error("您输入的URL地址不合法！")
+            logmini.error("响应状态" + str(response.status_code))
+            SetLogStatus(logid, "failed")
+            return
+        html = response.text
+        response.close()
+        rooturl = url.split('/')[2]
+        soup = BeautifulSoup(html, "html.parser")
+        title = soup.find("span", class_="anim_title_text")
+        logmini.info("作品名称：" + title.getText())
+        category = soup.find_all("div", class_="cartoon_online_border")
+        id = 0
+        for subcategory in category:
+            id += 1
+            logmini.info("第" + str(id) + "页")
+            list = subcategory.find_all("li")
+            sid = 0
+            for item in list:
+                sid += 1
+                logmini.info("Sid:" + str(sid) + "  " + item.find("a").getText())
+                referlink = "https://" + rooturl + item.a['href']
+                logmini.info("链接：" + referlink)
+                if (sid in downloadlist) or (downloadall):
+                    Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+        logmini.info("任务完成。")
+        SetLogStatus(logid, "complete")
+    except Exception as e:
+        logmini.error("任务失败。%s" % e)
+        SetLogStatus(logid, "failed")
 
-
-def Watch_dmzj(title, chapter, url, ext, logmini):
+def Watch_dmzj(title, chapter, url, ext, logmini, logid):
     tempdir = get_value("Temp_Dir")
     outdir = get_value("Output_Dir")
     folderpath = ""
@@ -130,7 +130,6 @@ def Watch_dmzj(title, chapter, url, ext, logmini):
     chrome_options.add_argument('--headless')
     chrome_options.add_argument('--disable-gpu')
     logmini.info("尝试获取网页数据,这可能需要较长的时间")
-    logging.info("尝试获取网页数据,这可能需要较长的时间")
     driver = webdriver.Chrome(options=chrome_options)
     driver.get(url)
     html = driver.execute_script('return document.documentElement.outerHTML')
@@ -141,10 +140,8 @@ def Watch_dmzj(title, chapter, url, ext, logmini):
     for url in urls:
         page += 1
         logmini.info(url.getText())
-        logging.info(url.getText())
         imgurl = "https:" + url.__getitem__('value')
         logmini.info(imgurl)
-        logging.info(imgurl)
         folderpath = title + "_" + chapter
         try:
             if not os.path.exists(tempdir):
@@ -155,20 +152,18 @@ def Watch_dmzj(title, chapter, url, ext, logmini):
                 os.mkdir(tempdir + folderpath)
         except Exception as e:
             logmini.warning(e)
-            logging.warning(e)
         filepath = str(page).zfill(3)
-        response = Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath)
+        response = Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
         if response == 1:
             logmini.info("第" + str(page) + "页图片下载成功")
-            logging.info("第" + str(page) + "页图片下载成功")
         else:
             logmini.error("第" + str(page) + "页图片下载失败")
-            logging.error("第" + str(page) + "页图片下载失败")
+            SetLogStatus(logid, "uncompleted")
             errortxt = "Title:" + str(title) + "_Chapter:" + str(chapter) + "_URL:" + str(oriurl)
             errorlist.append(errortxt)
             return -1
     if ext == "pdf":
-        folder2pdf(folderpath)
+        folder2pdf(folderpath, logmini, logid)
 
 
 def printerrorlist():
