@@ -1,9 +1,10 @@
 from proj_manga.mod_imports import *
+
 def Downpic(ua, referer, oripath, targetpath):
     outdir = get_value("Output_Dir")
     tempdir = get_value("Temp_Dir")
     exts = oripath.split(".")
-    ext = exts[len(exts)-1]
+    ext = exts[len(exts) - 1]
     headers = {"User-Agent": ua, "Referer": referer}
     response = requests.get(url=oripath, headers=headers)
     if response.status_code != 200:
@@ -12,7 +13,7 @@ def Downpic(ua, referer, oripath, targetpath):
         return -1
     try:
         pic = Image.open(BytesIO(response.content))
-        pic.save(targetpath+"."+ext)
+        pic.save(targetpath + "." + ext)
         response.close()
     except IOError as e:
         logging.error("无法保存文件。" + str(e))
@@ -23,6 +24,7 @@ def Downpic(ua, referer, oripath, targetpath):
         response.close()
         return -1
     return 1
+
 
 def folder2pdf(folderpath):
     outdir = get_value("Output_Dir")
@@ -61,11 +63,11 @@ def folder2pdf(folderpath):
             logging.info("PDF初步创建完成：" + tempdir + pdf_name + "_ori.pdf，生成书签...")
             bookmarks = []
             id = 0
-            bookmark = {"ID": 0, "Title": folderpath, "Page" : 0 ,"Parent" : -1}
+            bookmark = {"ID": 0, "Title": folderpath, "Page": 0, "Parent": -1}
             bookmarks.append(bookmark)
-            for i in range(0,len(im_list)):
+            for i in range(0, len(im_list)):
                 id += 1
-                bookmark = {"ID": id, "Title": str(i+1), "Page": i, "Parent": 0}
+                bookmark = {"ID": id, "Title": str(i + 1), "Page": i, "Parent": 0}
                 bookmarks.append(bookmark)
             result = pdfbookmark(tempdir + pdf_name + "_ori.pdf", outdir + pdf_name + ".pdf", bookmarks)
             if result == 0:
@@ -92,6 +94,7 @@ def folder2pdf(folderpath):
             logging.warning("清理图片缓存失败 %s" % (result))
     return 0
 
+
 def pdfbookmark(orifile, outputfile, bookmarks):
     outdir = get_value("Output_Dir")
     tempdir = get_value("Temp_Dir")
@@ -104,7 +107,7 @@ def pdfbookmark(orifile, outputfile, bookmarks):
             outer.addPage(reader.getPage(i))
         parents = {}
         for item in bookmarks:
-            if parents. __contains__(item["Parent"]):
+            if parents.__contains__(item["Parent"]):
                 a = outer.addBookmark(title=item['Title'], pagenum=item["Page"], parent=parents[item["Parent"]])
             else:
                 logging.warning("书签 %s 的Parent项不存在，已自动忽略" % item["Title"])

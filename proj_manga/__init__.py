@@ -1,6 +1,6 @@
-from flask import Flask
 from proj_manga.mod_imports import *
-init()
+
+mod_init.init()
 app = Flask(__name__)
 app.jinja_env.auto_reload = True
 app.config['TEMPLATES_AUTO_RELOAD'] = True

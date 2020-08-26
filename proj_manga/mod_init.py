@@ -1,8 +1,10 @@
 from proj_manga.mod_imports import *
 ChromePath = ""
 
+
 def is64windows():
     return 'PROGRAMFILES(X86)' in os.environ
+
 
 def init():
     settinginit()

@@ -1,11 +1,5 @@
-from flask import *
-from proj_manga import app
-from proj_manga.mod_dmzjsearch import *
-from proj_manga.mod_init import init
 from proj_manga.mod_imports import *
-from proj_manga import mod_email
-from .mod_mysql import *
-#<!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
+# <!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
 
 html_index = "index.html"
 html_logout = "logout.html"
@@ -14,17 +8,19 @@ html_loginformerr = "loginfail.html"
 html_user = "user.html"
 html_log = "log.html"
 
+
 def userpage(token):
     user = GetUser(GetUsername(token))
     message = render_template(html_user, username=user['username']
-                            , emailmd5=user['emailmd5']
-                            , email=user['email']
-                            , authorization=user['authorization']
-                            , s_host=user['s_host']
-                            , s_port=user['s_port']
-                            , s_pass=user['s_pass']
-                            , kindle_email=user['kindle_email'])
+                              , emailmd5=user['emailmd5']
+                              , email=user['email']
+                              , authorization=user['authorization']
+                              , s_host=user['s_host']
+                              , s_port=user['s_port']
+                              , s_pass=user['s_pass']
+                              , kindle_email=user['kindle_email'])
     return message
+
 
 def checkforlogin():
     try:
@@ -36,16 +32,19 @@ def checkforlogin():
     else:
         return False
 
+
 def checkuser(token):
     if GetUsername(token) == -1:
         return 1
     else:
         return 0
 
+
 @app.route('/')
 @app.route('/index')
 def index():
     return render_template(html_index)
+
 
 @app.route('/user')
 def user():
@@ -58,6 +57,7 @@ def user():
     else:
         return redirect("/login")
 
+
 @app.route('/login')
 def login():
     if checkforlogin():
@@ -65,7 +65,7 @@ def login():
     try:
         user = request.args['user']
         passwd = request.args['pass']
-        token = CheckUser(user,passwd)
+        token = CheckUser(user, passwd)
         if token == -1:
             return render_template(html_loginformerr)
         else:
@@ -75,6 +75,7 @@ def login():
         if checkforlogin():
             return redirect("/user")
         return render_template(html_loginform)
+
 
 @app.route('/logout')
 def logout():
@@ -95,9 +96,10 @@ def testmail():
         if result == 0:
             return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
         else:
-            return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > Failed:%s"%(result)
+            return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > Failed:%s" % (result)
     except Exception as e:
         return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > Failed:%s" % (e)
+
 
 @app.route('/search')
 def search():
@@ -110,11 +112,12 @@ def search():
     except Exception as e:
         return "Search Failed:%s" % (e)
 
+
 @app.route('/download')
 def download():
     if not checkforlogin():
         return redirect('/login')
-    #try:
+    # try:
     token = session['token']
     url = request.args['url']
     start = request.args['from']
@@ -124,9 +127,10 @@ def download():
     merge = request.args['merge']
     logid = CreateTask(url, start, end, all, sendmail, merge, token)
     return redirect('/getlog?logid=%s' % (logid))
-    #return str(all)
-    #except Exception as e:
+    # return str(all)
+    # except Exception as e:
     #    return "Failed: %s" % (e)
+
 
 @app.route('/getlog')
 def getlog():
@@ -141,4 +145,4 @@ def getlog():
         except Exception as e:
             return "请求日记失败: %s" % (e)
 
-#"/download?url="+url+"&from="+from+"&to="+to+"&all="+all+"&sendmail="+sendmail+"&merge="+merge
+# "/download?url="+url+"&from="+from+"&to="+to+"&all="+all+"&sendmail="+sendmail+"&merge="+merge

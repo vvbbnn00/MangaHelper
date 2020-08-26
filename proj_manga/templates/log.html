@@ -8,11 +8,12 @@
 	<meta charset="utf-8">
 	<title>任务日志-{{ logid }}</title>
 </head>
+	<div> 
+		<a href="/user" id="back">返回用户页面</a>
+	</div>
 	<h1>当前日志：{{ logid }}</h1>
 	<div id="logpanel">
-{% autoescaping false %}
-		{{ log }}
-{% endautoescape %}
+		{{ log|safe }}
 	</div>
 
 	<script>
@@ -20,6 +21,6 @@
 			window.location.href=window.location.href;
 			window.location.reload();
 		}
-		setTimeout('myrefresh()',1000); //指定1秒刷新一次
+		setTimeout('myrefresh()',5000); //指定1秒刷新一次
 	</script>
 </html>

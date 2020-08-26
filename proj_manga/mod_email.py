@@ -1,5 +1,6 @@
 from proj_manga.mod_imports import *
-def sendtestmail(email,s_host,s_port,s_pass):
+
+def sendtestmail(email, s_host, s_port, s_pass):
     # 设置email信息
     msg = MIMEMultipart()
     # 邮件主题
@@ -19,6 +20,6 @@ def sendtestmail(email,s_host,s_port,s_pass):
         for item in receivers:
             msg['To'] = to = item
             s.sendmail(email, to, msg.as_string())
-            return(0)
+            return (0)
     except smtplib.SMTPException as e:
-        return(e)
+        return (e)
