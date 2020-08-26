@@ -302,10 +302,10 @@ def send2kindle():
             path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + filename
             mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, filename)
             if mail_result == 0:
-                return "发送文件成功"
+                return "送信请求已发送"
             else:
-                return "发送文件失败"
+                return "送信请求发送失败"
         except Exception as e:
-            return "发送文件失败"
+            return "送信请求发送失败"
     except Exception as e:
-       return "发送文件失败"
+       return "送信请求发送失败"

@@ -59,8 +59,20 @@ def delfile(path):
 
 
 def delfolder(path):
+    ret = 0
     try:
-        os.removedirs(path)
-        return 0
+        os.rmdir(os.path.abspath(path))
+    except FileNotFoundError as e:
+        ret = e
+    except OSError as e:
+        for i in os.listdir(os.path.abspath(path)):
+            if os.path.isfile("%s/%s" % (os.path.abspath(path), i)):
+                os.remove("%s/%s" % (os.path.abspath(path), i))
+            else:
+                delfolder("%s/%s" % (os.path.abspath(path), i))
     except Exception as e:
-        return str(e)
+        return e
+    finally:
+        if ret == 0:
+            os.rmdir(os.path.abspath(path))
+        return ret

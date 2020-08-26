@@ -1,4 +1,6 @@
 #import logging
+import threading
+
 from proj_manga import mod_email
 from proj_manga.mod_imports import *
 from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles
@@ -8,6 +10,30 @@ from proj_manga.mod_mysql import SetLogStatus, GetUser, GetUsername
 ua = UserAgent()
 errorlist = list()
 import time
+
+class thread_download (threading.Thread):
+    def __init__(self, ua, referer, oripath, targetpath, logmini, logid):
+        threading.Thread.__init__(self)
+        self.ua = ua
+        self.referer = referer
+        self.oripath = oripath
+        self.targetpath = targetpath
+        self.logmini = logmini
+        self.logid = logid
+    def run(self):
+        Downpic(self.ua, self.referer, self.oripath, self.targetpath, self.logmini, self.logid)
+
+class thread_watch (threading.Thread):
+    def __init__(self, title, chapter, url, ext, logmini, logid):
+        threading.Thread.__init__(self)
+        self.title = title
+        self.chapter = chapter
+        self.url = url
+        self.ext = ext
+        self.logmini = logmini
+        self.logid = logid
+    def run(self):
+        Watch_dmzj(self.title, self.chapter, self.url, self.ext, self.logmini, self.logid)
 
 class html_logclass():
     def __init__(self, filename):
@@ -104,6 +130,7 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
         logmini.info("作品名称：" + title.getText())
         category = soup.find_all("div", class_="cartoon_online_border")
         id = 0
+        threads = []
         for subcategory in category:
             id += 1
             logmini.info("第" + str(id) + "页")
@@ -115,7 +142,11 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
                 referlink = "https://" + rooturl + item.a['href']
                 logmini.info("链接：" + referlink)
                 if (sid in downloadlist) or (downloadall):
-                    Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+                    n_thread = thread_watch(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+                    n_thread.start()
+                    threads.append(n_thread)
+        for t in threads:
+            t.join()
         if merge == True:
             logmini.info("自动合并被设置为开，正在合并文件（注意：合并后单独文件将会被删除）。")
             path = get_value("Output_Dir") + logid + "/"
@@ -178,6 +209,7 @@ def Watch_dmzj(title, chapter, url, ext, logmini, logid):
     urls = soup.find_all("option")
     page = 0
     driver.close()  # 记得关闭，否则占用内存资源
+    threads = []
     for url in urls:
         page += 1
         logmini.info(url.getText())
@@ -194,15 +226,13 @@ def Watch_dmzj(title, chapter, url, ext, logmini, logid):
         except Exception as e:
             logmini.warning(e)
         filepath = str(page).zfill(3)
-        response = Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
-        if response == 1:
-            logmini.info("第" + str(page) + "页图片下载成功")
-        else:
-            logmini.error("第" + str(page) + "页图片下载失败")
-            SetLogStatus(logid, "uncompleted")
-            errortxt = "Title:" + str(title) + "_Chapter:" + str(chapter) + "_URL:" + str(oriurl)
-            errorlist.append(errortxt)
-            return -1
+        newthread = thread_download(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
+        threads.append(newthread)
+        newthread.start()
+
+    for t in threads:
+        t.join()
+
     if ext == "pdf":
         folder2pdf(folderpath, logmini, logid)
 

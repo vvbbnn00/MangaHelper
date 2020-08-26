@@ -1,3 +1,5 @@
+import _thread
+
 from proj_manga.mod_imports import *
 from proj_manga.mod_safety import s_passdecrypt
 
@@ -28,7 +30,7 @@ def sendtestmail(email, s_host, s_port, s_pass):
     except smtplib.SMTPException as e:
         return (e)
 
-def sendemail_file(f_email, t_email, s_host, s_port, s_pass, file_path, filename):
+def SendEmail_File(f_email, t_email, s_host, s_port, s_pass, file_path, filename):
     try:
         # 设置email信息
         msg = MIMEMultipart()
@@ -56,3 +58,9 @@ def sendemail_file(f_email, t_email, s_host, s_port, s_pass, file_path, filename
         return (0)
     except smtplib.SMTPException as e:
         return (e)
+def sendemail_file(f_email, t_email, s_host, s_port, s_pass, file_path, filename):
+    try:
+        _thread.start_new_thread(SendEmail_File,(f_email, t_email, s_host, s_port, s_pass, file_path, filename))
+        return 0
+    except Exception as e:
+        return 1
