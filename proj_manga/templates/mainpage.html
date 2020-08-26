@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>	
+	<link rel="stylesheet" href="static/css/font-awesome-4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" type="text/css" href="static/css/main.css">
+	<meta charset="utf-8">
+	<title>用户中心-Manga Helper</title>
+	<script type="text/javascript">
+		function jump(url){
+			document.getElementById("pages").innerHTML= "<object type='text/html' data='"+url+"' width='100%' height='100%'></object>"
+		}
+	</script>
+</head>
+	<body onload="jump('/introduce')">
+		<div id="page-sidebar">
+			<ul>
+				<h1>Manga Helper</h1><br>
+				<li><a onclick="jump('/introduce')">主页</a></li><br>
+				<li><a onclick="jump('/user')">账户信息</a></li><br>
+				<li><a onclick="jump('/getloglist')">日志列表</a></li><br>
+				<li><a onclick="jump('/donate')">支持我</a></li><br>
+				<li><a onclick="">使用帮助</a></li><br>
+			</ul>
+			<div id="copyright">©2020-2020 不做评论(vvbbnn00). All Rights Reserved.</div>
+		</div>
+		<div id="pages"></div>
+		</div>
+	</body>
+	
+</html>
