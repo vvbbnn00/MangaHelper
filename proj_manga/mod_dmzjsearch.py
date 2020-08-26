@@ -142,9 +142,10 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
                 referlink = "https://" + rooturl + item.a['href']
                 logmini.info("链接：" + referlink)
                 if (sid in downloadlist) or (downloadall):
-                    n_thread = thread_watch(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
-                    n_thread.start()
-                    threads.append(n_thread)
+                    # n_thread = thread_watch(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+                    # n_thread.start()
+                    # threads.append(n_thread)
+                    Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
         for t in threads:
             t.join()
         if merge == True:
