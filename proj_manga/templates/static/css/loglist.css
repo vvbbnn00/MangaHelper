@@ -1,0 +1,101 @@
+	body,p,div,ul,li,h1,h2,h3,h4,h5,h6{
+		margin:0;
+		padding: 0;
+	}
+	body{
+		background: #E9E9E9; 
+		text-align:center;
+	}
+	#back{
+		position: relative;
+		top:20px;
+		left:-200px;
+		color:#6F6F6F;
+		font-size:20px;
+		font-weight:bold;
+	}
+	a{
+		color:#6F6F6F;
+		font-size:17px;
+		font-weight:bold;
+	}
+	h1{
+		top:40px;
+		position: relative;
+		color:#6F6F6F;	
+		font-size:25px;
+		font-weight:bold;
+	}
+	table
+	  {
+		font-size:18px;
+		text-align:center;
+		border-collapse:collapse;
+	  }
+	td, th 
+	  {
+	  text-align:center;
+	  font-size:1em;
+	  padding:3px 7px 2px 7px;
+	  }
+	th
+	  {
+		  font-size:1.1em;
+		  padding-top:5px;
+		  padding-bottom:4px;
+		  background-color:#808080;
+		  color:#ffffff;
+	  }
+	th:nth-child(1){
+		border-top-left-radius:15px;
+	}
+	th:nth-last-child(1){
+		border-top-right-radius:15px;
+	}
+	tr:nth-child(odd) td 
+	  {
+	  color:#000000;
+	  background-color:#E6E6E6;
+	  }
+	#complete{
+		display: inline-block;
+		border-radius: 20px;
+		background-color:#10DE10;
+		width:100px;
+		color:#FFFFFF;
+		}
+	#running{
+		display: inline-block;
+		border-radius: 20px;
+		background-color:#EEBE00;
+		width:100px;
+		color:#FFFFFF;
+		}
+	#failed{
+		display: inline-block;
+		border-radius: 20px;
+		background-color:#D71818;
+		width:100px;
+		color:#FFFFFF;
+		}
+	#uncompleted{
+		display: inline-block;
+		border-radius: 20px;
+		background-color:#EE5F00;
+		width:100px;
+		color:#FFFFFF;
+		}
+	#logpanel{
+		text-align:center;
+		display: inline-block;
+		background: #FFF;
+		position: relative;
+		margin:70px auto;
+		border-radius: 20px;
+		padding-right: 20px;
+		padding-left: 20px;
+		padding-top: 10px;
+		padding-bottom: 20px;
+		box-shadow: 10px 10px 10px #CCCCCC;
+	}
+
