@@ -1,8 +1,33 @@
 #import logging
+from PyPDF2 import PdfFileMerger, PdfFileReader
+import codecs
 from proj_manga.mod_file import delfile, delfolder
 from proj_manga.mod_imports import *
 from proj_manga.mod_settings import get_value
 
+def mergefiles(path, output_filename, logmini):
+    try:
+        # 遍历目录下的所有pdf将其合并输出到一个pdf文件中，输出的pdf文件默认带书签，书签名为之前的文件名
+        merger = PdfFileMerger()
+        filelist = os.listdir(path)
+        for filename in filelist:
+            logmini.info('合并文件：%s' % (filename))
+            f = codecs.open(path + filename, 'rb')
+            file_rd = PdfFileReader(f)
+            short_filename = os.path.basename(os.path.splitext(filename)[0])
+            logmini.info(short_filename)
+            merger.append(file_rd, bookmark=short_filename, import_bookmarks=True)
+            f.close()
+            logmini.info("清理PDF %s" % filename)
+            result = delfile(path + filename)
+            if result != 0:
+                logmini.warning("清理PDF失败 %s" % (result))
+        out_filename = os.path.join(path, output_filename)
+        merger.write(out_filename)
+        merger.close()
+        return 0
+    except Exception as e:
+        return 1
 
 def Downpic(ua, referer, oripath, targetpath, logmini, logid):
     exts = oripath.split(".")
@@ -70,11 +95,11 @@ def folder2pdf(folderpath, logmini, logid):
             logmini.info("PDF初步创建完成：" + tempdir + pdf_name + "_ori.pdf，生成书签...")
             bookmarks = []
             id = 0
-            bookmark = {"ID": 0, "Title": folderpath, "Page": 0, "Parent": -1}
-            bookmarks.append(bookmark)
+            # bookmark = {"ID": 0, "Title": folderpath, "Page": 0, "Parent": -1}
+            # bookmarks.append(bookmark)
             for i in range(0, len(im_list)):
                 id += 1
-                bookmark = {"ID": id, "Title": str(i + 1), "Page": i, "Parent": 0}
+                bookmark = {"ID": id, "Title": str(i + 1), "Page": i, "Parent": -1}
                 bookmarks.append(bookmark)
             result = pdfbookmark(tempdir + pdf_name + "_ori.pdf", outdir + logid + "/" + pdf_name + ".pdf", bookmarks, logmini)
             if result == 0:

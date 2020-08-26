@@ -130,9 +130,9 @@ def download():
         start = request.args['from']
         end = request.args['to']
         all = request.args['all']
-        #sendmail = request.args['sendmail']
-        #merge = request.args['merge']
-        logid = CreateTask(url, start, end, all, token)
+        sendmail = request.args['sendmail']
+        merge = request.args['merge']
+        logid = CreateTask(url, start, end, all, sendmail, merge, token)
         if logid == -1:
             return "创建下载任务失败！"
         else:
@@ -238,7 +238,7 @@ def requestfile():
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
             return "您没有权限下载他人的文件"
         try:
-            path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
+            path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + filename
             return send_file(path, attachment_filename=filename)
         except Exception as e:
             return "下载文件失败"
@@ -268,7 +268,7 @@ def send2kindle():
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
             return "您没有权限操作他人的文件"
         try:
-            path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
+            path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + filename
             mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, filename)
             if mail_result == 0:
                 return "发送文件成功"

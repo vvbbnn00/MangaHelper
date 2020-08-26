@@ -1,8 +1,9 @@
 #import logging
+from proj_manga import mod_email
 from proj_manga.mod_imports import *
-from proj_manga.mod_pic2pdf import folder2pdf, Downpic
+from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles
 from proj_manga.mod_settings import get_value
-from proj_manga.mod_mysql import SetLogStatus
+from proj_manga.mod_mysql import SetLogStatus, GetUser, GetUsername
 
 ua = UserAgent()
 errorlist = list()
@@ -81,9 +82,9 @@ def Search_dmzj(text, page):
     return output
 
 
-def Analyze_dmzj(url, ext, downloadlist, downloadall, logid):
+def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, token):
+    logmini = html_logclass(get_value("Log_Dir") + logid + ".log")
     try:
-        logmini = html_logclass(get_value("Log_Dir") + logid + ".log")
         tempdir = get_value("Temp_Dir")
         outdir = get_value("Output_Dir")
         logmini.info("正在下载地址" + url)
@@ -115,6 +116,46 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid):
                 logmini.info("链接：" + referlink)
                 if (sid in downloadlist) or (downloadall):
                     Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+        if merge == True:
+            logmini.info("自动合并被设置为开，正在合并文件（注意：合并后单独文件将会被删除）。")
+            path = get_value("Output_Dir") + logid + "/"
+            if not downloadall:
+                result = mergefiles(path,
+                                    title.getText() + "_第%s到第%s话.pdf" % (str(downloadlist[0]), str(downloadlist[-1])),
+                                    logmini)
+            else:
+                result = mergefiles(path, title.getText() + "_全部下载.pdf", logmini)
+            if result == 0:
+                logmini.info("合并成功。")
+            else:
+                logmini.info("合并失败。")
+                SetLogStatus(logid, "failed")
+                raise Exception
+        if sendmail == True:
+            logmini.info("自动发送kindle被设置为开，正在发送信件。")
+            user = GetUser(GetUsername(token))
+            s_host = user['s_host']
+            s_port = user['s_port']
+            s_pass = user['s_pass']
+            s_email = user['email']
+            kindle_email = user['kindle_email']
+            valid = (s_host != "") and (s_port != "") and (s_pass != "") and (s_email != "") and (
+                            kindle_email != "")
+            try:
+                if not valid:
+                    raise Exception
+                path = get_value("Output_Dir") + logid
+                filelist = os.listdir(path)
+                for file in filelist:
+                    logmini.info("正在发送文件 %s" % file)
+                    path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + file
+                    mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, file)
+                    if mail_result == 0:
+                        logmini.info("发送文件 %s 成功" % file)
+                    else:
+                        logmini.error("发送文件 %s 失败" % file)
+            except Exception as e:
+                logmini.error("发送文件失败")
         logmini.info("任务完成。")
         SetLogStatus(logid, "complete")
     except Exception as e:

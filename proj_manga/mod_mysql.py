@@ -127,7 +127,7 @@ def GetUsername(token):
         return -1
 
 
-def CreateTask(url, start, end, all, token):
+def CreateTask(url, start, end, all, sendmail, merge, token):
     from proj_manga.mod_dmzjsearch import Analyze_dmzj
     username = GetUsername(token)
     logid = "downlog_" + username + "_" + time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
@@ -142,12 +142,24 @@ def CreateTask(url, start, end, all, token):
             all = False
         else:
             return -1
+        if sendmail == "true":
+            sendmail = True
+        elif sendmail == "false":
+            sendmail = False
+        else:
+            return -1
+        if merge == "true":
+            merge = True
+        elif merge == "false":
+            merge = False
+        else:
+            return -1
         db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
         cursor = db.cursor()
         sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
                      VALUES ('%s', '%s', '%s', '%s')""" % (
         username, logid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "running")
-        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid))
+        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid, sendmail, merge, token))
         cursor.execute(sql)
         db.close()
         return logid
