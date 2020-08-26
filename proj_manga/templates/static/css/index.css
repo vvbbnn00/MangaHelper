@@ -5,6 +5,9 @@ body,p,div,ul,li,h1,h2,h3,h4,h5,h6{
 body{
 	background: #E9E9E9; 
 }
+#main{
+	margin:auto auto
+}
 h1{
 	text-shadow: 1px 1px 1px #5E5E5E;
 	text-align:center;

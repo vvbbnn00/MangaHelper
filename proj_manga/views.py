@@ -7,7 +7,8 @@ from proj_manga import app
 # <!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
 from proj_manga.mod_mysql import *
 
-html_index = "index.html"
+html_introduce = "introduce.html"
+html_introduce2 = "introduce2.html"
 html_logout = "logout.html"
 html_loginform = "login.html"
 html_loginformerr = "loginfail.html"
@@ -15,6 +16,8 @@ html_user = "user.html"
 html_log = "log.html"
 html_loglist = "loglist.html"
 html_downlist = "downlist.html"
+html_mainpage = "mainpage.html"
+html_donate = "donate.html"
 
 def userpage(token):
     user = GetUser(GetUsername(token))
@@ -46,12 +49,24 @@ def checkuser(token):
     else:
         return 0
 
+@app.route('/donate')
+def donate():
+    return render_template(html_donate)
 
 @app.route('/')
 @app.route('/index')
 def index():
-    return render_template(html_index)
+    if checkforlogin():
+        return render_template(html_mainpage)
+    else:
+        return redirect("/introduce")
 
+@app.route('/introduce')
+def introduce():
+    if checkforlogin():
+        return render_template(html_introduce2)
+    else:
+        return render_template(html_introduce)
 
 @app.route('/user')
 def user():
@@ -68,7 +83,7 @@ def user():
 @app.route('/login')
 def login():
     if checkforlogin():
-        return redirect("/user")
+        return redirect("/index")
     try:
         user = request.args['user']
         passwd = request.args['pass']
@@ -77,10 +92,10 @@ def login():
             return render_template(html_loginformerr)
         else:
             session['token'] = token
-            return redirect("/user")
+            return redirect("/index")
     except KeyError as e:
         if checkforlogin():
-            return redirect("/user")
+            return redirect("/index")
         return render_template(html_loginform)
 
 
@@ -152,10 +167,12 @@ def getlog():
             result = GetLog(logid, token)
             return render_template(html_log, logid=logid, log=result)
         except KeyError as e:
-            return "请求日记失败: 请求格式错误！"
+            return render_template(html_log, logid="", log="请求日记失败: 请求格式错误！")
         except Exception as e:
-            return "请求日记失败: Unexpected Error <br> %s" % (e)
+            return render_template(html_log, logid="", log="请求日记失败: Unexpected Error <br> %s" % e)
 
+def takeSecond(elem):
+    return elem[1]
 
 @app.route('/getloglist')
 def getloglist():
@@ -163,25 +180,39 @@ def getloglist():
         return redirect('/login')
     try:
         token = session['token']
-        list = GetLogListFromToken(token)[::-1]
+        loglist = list(GetLogListFromToken(token))
+        loglist.sort(reverse=True, key=takeSecond)
         text = ""
-        for item in list:
+        for item in loglist:
             username = item[0]
             logid = item[1]
             datetime = item[2].strftime('%Y-%m-%d %X')
             status = item[3]
-            text += """
-            <tr>
-                <td><div id="%s">%s</div></td>
-                <td>%s</td>
-                <td>%s</td>
-                <td>%s</td>
-                <td><a href="/getlog?logid=%s">查看日志</a></td>
-            </tr>""" \
-                    % (status, status, username, logid, datetime, logid)
+            if (status == "failed") or (status == "running"):
+                text += """
+                <tr>
+                    <td><div id="%s">%s</div></td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td><a href="/getlog?logid=%s">查看日志</a></td>
+                    <td><a>暂无下载</a></td>
+                </tr>""" \
+                        % (status, status, username, logid, datetime, logid)
+            else:
+                text += """
+                <tr>
+                    <td><div id="%s">%s</div></td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td><a href="/getlog?logid=%s">查看日志</a></td>
+                    <td><a href="/getdownlist?logid=%s">下载</a></td>
+                </tr>""" \
+                        % (status, status, username, logid, datetime, logid, logid)
         return render_template(html_loglist, table=text)
     except Exception as e:
-       return "获取目录列表失败"
+       return render_template(html_loglist, table="获取目录列表失败 %s" % e)
 
 
 def get_FileSize(filePath):
@@ -202,7 +233,7 @@ def getdownlist():
         result = GetLogSingle(logid, token)
         user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
-            return "您没有权限下载他人的文件"
+            return render_template(html_downlist, logid="", table="您没有权限下载他人的文件")
         text = ""
         if result != -1:
             path = get_value("Output_Dir") + logid
@@ -222,7 +253,7 @@ def getdownlist():
                 """ % (item, size, logid, item, logid, item)
         return render_template(html_downlist, logid=logid, table=text)
     except Exception as e:
-       return "获取文件列表失败"
+       return render_template(html_downlist, logid="", table="获取文件列表失败")
 
 
 @app.route('/requestfile')
