@@ -3,6 +3,7 @@ from proj_manga.mod_dmzjsearch import Search_dmzj
 from proj_manga.mod_imports import *
 from flask import *
 from proj_manga import app
+
 # <!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
 from proj_manga.mod_mysql import *
 
@@ -13,6 +14,7 @@ html_loginformerr = "loginfail.html"
 html_user = "user.html"
 html_log = "log.html"
 html_loglist = "loglist.html"
+html_downlist = "downlist.html"
 
 def userpage(token):
     user = GetUser(GetUsername(token))
@@ -22,7 +24,7 @@ def userpage(token):
                               , authorization=user['authorization']
                               , s_host=user['s_host']
                               , s_port=user['s_port']
-                              , s_pass=user['s_pass']
+                              , s_pass=""
                               , kindle_email=user['kindle_email'])
     return message
 
@@ -122,22 +124,21 @@ def search():
 def download():
     if not checkforlogin():
         return redirect('/login')
-    # try:
-    token = session['token']
-    url = request.args['url']
-    start = request.args['from']
-    end = request.args['to']
-    all = request.args['all']
-    sendmail = request.args['sendmail']
-    merge = request.args['merge']
-    logid = CreateTask(url, start, end, all, sendmail, merge, token)
-    if logid == -1:
-        return "创建下载任务失败！"
-    else:
-        return redirect('/getlog?logid=%s' % (logid))
-    # return str(all)
-    # except Exception as e:
-    #    return "Failed: %s" % (e)
+    try:
+        token = session['token']
+        url = request.args['url']
+        start = request.args['from']
+        end = request.args['to']
+        all = request.args['all']
+        #sendmail = request.args['sendmail']
+        #merge = request.args['merge']
+        logid = CreateTask(url, start, end, all, token)
+        if logid == -1:
+            return "创建下载任务失败！"
+        else:
+            return redirect('/getlog?logid=%s' % (logid))
+    except Exception as e:
+       return "Failed: %s" % (e)
 
 
 @app.route('/getlog')
@@ -155,61 +156,125 @@ def getlog():
         except Exception as e:
             return "请求日记失败: Unexpected Error <br> %s" % (e)
 
+
 @app.route('/getloglist')
 def getloglist():
     if not checkforlogin():
         return redirect('/login')
-    #try:
-    token = session['token']
-    list = GetLogListFromToken(token)[::-1]
-    text = ""
-    for item in list:
-        username = item[0]
-        logid = item[1]
-        datetime = item[2].strftime('%Y-%m-%d %X')
-        status = item[3]
-        text += """
-        <tr>
-            <td><div id="%s">%s</div></td>
-			<td>%s</td>
-			<td>%s</td>
-			<td>%s</td>
-			<td><a href="/getlog?logid=%s">查看日志</a></td>
-		</tr>"""\
-                %(status, status, username, logid, datetime, logid)
-    return render_template(html_loglist, table=text)
-    #except Exception as e:
-    #    return e
+    try:
+        token = session['token']
+        list = GetLogListFromToken(token)[::-1]
+        text = ""
+        for item in list:
+            username = item[0]
+            logid = item[1]
+            datetime = item[2].strftime('%Y-%m-%d %X')
+            status = item[3]
+            text += """
+            <tr>
+                <td><div id="%s">%s</div></td>
+                <td>%s</td>
+                <td>%s</td>
+                <td>%s</td>
+                <td><a href="/getlog?logid=%s">查看日志</a></td>
+            </tr>""" \
+                    % (status, status, username, logid, datetime, logid)
+        return render_template(html_loglist, table=text)
+    except Exception as e:
+       return "获取目录列表失败"
+
+
+def get_FileSize(filePath):
+    fsize = os.path.getsize(filePath)
+    fsize = fsize / float(1024 * 1024)
+    size = round(fsize, 2)
+    result = "%.2f MB" % (size)
+    return result
+
 
 @app.route('/getdownlist')
 def getdownlist():
     if not checkforlogin():
         return redirect('/login')
-    #try:
-    token = session['token']
-    logid = request.args['logid']
-    result = GetLogSingle(logid, token)
-    text = ""
-    if result != -1:
-        path = get_value("Output_Dir")+logid
-        list = os.listdir(path)
-        for item in list:
-            text += """
-                <dir id="download"> <a href="%s">%s</a> </dir>
-            """ % (item, item)
-    return text
+    try:
+        token = session['token']
+        logid = request.args['logid']
+        result = GetLogSingle(logid, token)
+        user = GetUser(GetUsername(token))
+        if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
+            return "您没有权限下载他人的文件"
+        text = ""
+        if result != -1:
+            path = get_value("Output_Dir") + logid
+            list = os.listdir(path)
+            for item in list:
+                size = get_FileSize(os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid +
+                                    "\\" + item)
+                text += """
+                    <tr>
+                        <td><div>
+                        <i class="social fa fa-file-pdf-o" style="font-size:25px;font-weight:normal;color:#6F6F6F;"></i>&nbsp;%s
+                         </div></td>
+                    <td>%s</td>
+                    <td><a href="/requestfile?logid=%s&file=%s">点击下载</a></td>
+                    <td><a href="/send2kindle?logid=%s&file=%s">发送到kindle</a></td>
+                </tr>
+                """ % (item, size, logid, item, logid, item)
+        return render_template(html_downlist, logid=logid, table=text)
+    except Exception as e:
+       return "获取文件列表失败"
+
 
 @app.route('/requestfile')
 def requestfile():
     if not checkforlogin():
         return redirect('/login')
-    #try:
-    token = session['token']
-    logid = request.args['logid']
-    filename = request.args['file']
-    result = GetLogSingle(logid, token)
     try:
-        path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
-        return send_file(path, attachment_filename=filename)
+        token = session['token']
+        logid = request.args['logid']
+        filename = request.args['file']
+        result = GetLogSingle(logid, token)
+        user = GetUser(GetUsername(token))
+        if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
+            return "您没有权限下载他人的文件"
+        try:
+            path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
+            return send_file(path, attachment_filename=filename)
+        except Exception as e:
+            return "下载文件失败"
     except Exception as e:
-        return "下载文件失败"
+       return "下载文件失败"
+
+
+@app.route('/send2kindle')
+def send2kindle():
+    if not checkforlogin():
+        return redirect('/login')
+    try:
+        token = session['token']
+        user = GetUser(GetUsername(token))
+        s_host = user['s_host']
+        s_port = user['s_port']
+        s_pass = user['s_pass']
+        s_email = user['email']
+        kindle_email = user['kindle_email']
+        valid = (s_host != "") and (s_port != "") and (s_pass != "") and (s_email != "") and (kindle_email != "")
+        if not valid:
+            return "您的电子邮箱信息不正确，请更新后重试"
+        logid = request.args['logid']
+        filename = request.args['file']
+        result = GetLogSingle(logid, token)
+        user = GetUser(GetUsername(token))
+        if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
+            return "您没有权限操作他人的文件"
+        try:
+            path = os.path.join(os.getcwd(), get_value("Output_Dir").replace('/', '\\')) + logid + "\\" + filename
+            mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, filename)
+            if mail_result == 0:
+                return "发送文件成功"
+            else:
+                return "发送文件失败"
+        except Exception as e:
+            return "发送文件失败"
+    except Exception as e:
+       return "发送文件失败"

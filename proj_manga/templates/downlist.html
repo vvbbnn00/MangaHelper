@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+
+<!--在这里总共用到了一下变量 emailmd5 username authorization email authcolor s_host s_port s_pass kindle_email-->
+<html>
+
+<head>	
+	<link rel="stylesheet" type="text/css" href="static/css/loglist.css">
+	<link rel="stylesheet" href="static/css/font-awesome-4.7.0/css/font-awesome.min.css">
+	<meta charset="utf-8">
+	<title>下载列表_{{ logid }}</title>
+</head>
+	<div> 
+		<a onclick="javascript:history.go(-1);" id="back">返回</a>
+	</div>
+	<h1>下载列表_{{ logid }}</h1>
+	<div id="logpanel">
+		<table>
+		<tr>
+			<th>文件名称</th>
+			<th>文件大小</th>
+			<th></th>
+			<th></th>
+		</tr>
+		{{ table|safe }}
+		</table>
+	</div>
+
+	<script>
+		function myrefresh(){
+			window.location.href=window.location.href;
+			window.location.reload();
+		}
+		setTimeout('myrefresh()',5000); //指定1秒刷新一次
+	</script>
+</html>

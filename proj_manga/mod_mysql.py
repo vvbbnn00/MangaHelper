@@ -127,7 +127,7 @@ def GetUsername(token):
         return -1
 
 
-def CreateTask(url, start, end, all, sendmail, merge, token):
+def CreateTask(url, start, end, all, token):
     from proj_manga.mod_dmzjsearch import Analyze_dmzj
     username = GetUsername(token)
     logid = "downlog_" + username + "_" + time.strftime('%Y%m%d%H%M%S', time.localtime(time.time()))
