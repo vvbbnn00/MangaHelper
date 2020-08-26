@@ -4,30 +4,54 @@ import codecs
 from proj_manga.mod_file import delfile, delfolder
 from proj_manga.mod_imports import *
 from proj_manga.mod_settings import get_value
+maxsize = 51904512 #单位Byte 换算49.5MB 0.5MB用于信件本身
 
 def mergefiles(path, output_filename, logmini):
-    try:
         # 遍历目录下的所有pdf将其合并输出到一个pdf文件中，输出的pdf文件默认带书签，书签名为之前的文件名
-        merger = PdfFileMerger()
         filelist = os.listdir(path)
+        merger = []
+        merger.append(PdfFileMerger())
+        id = 0
+        total_size = 0
         for filename in filelist:
+            f_path = path + filename
             logmini.info('合并文件：%s' % (filename))
-            f = codecs.open(path + filename, 'rb')
-            file_rd = PdfFileReader(f)
-            short_filename = os.path.basename(os.path.splitext(filename)[0])
-            logmini.info(short_filename)
-            merger.append(file_rd, bookmark=short_filename, import_bookmarks=True)
-            f.close()
+            if total_size + os.path.getsize(f_path) > maxsize:
+                if os.path.getsize(f_path) > maxsize:
+                    logmini.warning('文件%s过大，已跳过合并，稍后可以自行下载。' % (filename))
+                    continue
+                id += 1
+                total_size = os.path.getsize(f_path)
+                f = codecs.open(f_path, 'rb')
+                file_rd = PdfFileReader(f)
+                short_filename = os.path.basename(os.path.splitext(filename)[0])
+                logmini.info(short_filename)
+                merger.append(PdfFileMerger())
+                merger[id].append(file_rd, bookmark=short_filename, import_bookmarks=True)
+                f.close()
+                logmini.warning('合并文件过大，已分段处理。' % (filename))
+            else:
+                total_size += os.path.getsize(f_path)
+                f = codecs.open(f_path, 'rb')
+                file_rd = PdfFileReader(f)
+                short_filename = os.path.basename(os.path.splitext(filename)[0])
+                logmini.info(short_filename)
+                merger[id].append(file_rd, bookmark=short_filename, import_bookmarks=True)
+                f.close()
             logmini.info("清理PDF %s" % filename)
             result = delfile(path + filename)
             if result != 0:
                 logmini.warning("清理PDF失败 %s" % (result))
-        out_filename = os.path.join(path, output_filename)
-        merger.write(out_filename)
-        merger.close()
+        if id == 0:
+            out_filename = os.path.join(path, output_filename)
+            merger[0].write(out_filename)
+            merger[0].close()
+        else:
+            for i in range(0, id+1):
+                out_filename = os.path.join(path, "[%s]" % str(id)+output_filename)
+                merger[i].write(out_filename)
+                merger[i].close()
         return 0
-    except Exception as e:
-        return 1
 
 def Downpic(ua, referer, oripath, targetpath, logmini, logid):
     exts = oripath.split(".")
