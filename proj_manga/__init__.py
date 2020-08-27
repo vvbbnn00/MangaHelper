@@ -1,5 +1,4 @@
 from gevent import monkey
-from gevent.pywsgi import WSGIServer
 # 下面这句不加也能启动服务，但是你会发现Flask还是单线程，在一个请求未返回时，其他请求也会阻塞，所以请添加这句
 monkey.patch_all()
 

@@ -1,5 +1,4 @@
 import _thread
-import hashlib
 
 from proj_manga.mod_imports import *
 from proj_manga.mod_safety import pass_hash, s_passencrypt

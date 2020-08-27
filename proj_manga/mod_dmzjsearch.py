@@ -1,7 +1,5 @@
-# import logging
 import threading
 import multiprocessing
-import time
 
 from proj_manga import mod_email
 from proj_manga.mod_imports import *

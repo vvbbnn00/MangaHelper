@@ -2,7 +2,6 @@ from gevent.pywsgi import WSGIServer
 
 from proj_manga import mod_email
 from proj_manga.mod_dmzjsearch import Search_dmzj
-from proj_manga.mod_imports import *
 from flask import *
 from proj_manga import app
 
@@ -70,37 +69,37 @@ limiter = Limiter(
 
 @app.errorhandler(429)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="429", error_description=e), 429
+    return render_template(html_error, error_code="429", error_description=e), 200
 
 
 @app.errorhandler(403)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="403", error_description=e), 403
+    return render_template(html_error, error_code="403", error_description=e), 200
 
 
 @app.errorhandler(404)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="404", error_description=e), 404
+    return render_template(html_error, error_code="404", error_description=e), 200
 
 
 @app.errorhandler(500)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="500", error_description=e), 500
+    return render_template(html_error, error_code="500", error_description=e), 200
 
 
 @app.errorhandler(414)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="414", error_description=e), 414
+    return render_template(html_error, error_code="414", error_description=e), 200
 
 
 @app.errorhandler(413)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="413", error_description=e), 413
+    return render_template(html_error, error_code="413", error_description=e), 200
 
 
 @app.errorhandler(412)
 def toomanyrequests(e):
-    return render_template(html_error, error_code="412", error_description=e), 412
+    return render_template(html_error, error_code="412", error_description=e), 200
 
 
 
@@ -323,7 +322,7 @@ def getdownlist():
 
 
 @app.route('/requestfile')
-@limiter.limit("1/second")
+@limiter.limit("5/second")
 def requestfile():
     if not checkforlogin():
         return redirect('/login')

@@ -1,4 +1,4 @@
-#import logging
+
 from PyPDF2 import PdfFileMerger, PdfFileReader
 import codecs
 from proj_manga.mod_file import delfile, delfolder

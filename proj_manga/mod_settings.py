@@ -1,4 +1,3 @@
-from proj_manga.mod_imports import *
 
 def _init():
     global _global_dict
@@ -11,7 +10,7 @@ def settinginit():
     set_value("PrintLog", True)
     set_value("SearchingEngine", "动漫之家")
     set_value("CleanOriPDF", True)
-    set_value("CleanOriPic", False)
+    set_value("CleanOriPic", True)
     set_value("Temp_Dir", "temp/")
     set_value("Log_Dir", "log/")
     set_value("Output_Dir", "output/")

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+	<style>
+		#back{
+			text-align:center;
+			position:relative;
+			font-size:24px;
+			font-weight:bold;
+			color:#6F6F6F;	
+		}
+	</style>
+	<head>
+	<link rel="stylesheet" type="text/css" href="static/css/index.css">
+	<meta charset="utf-8">
+	<title>{{ error_code }} Error-Manga Helper</title>
+	</head>
+	<body>	
+		<div id="back"> 
+			<br>
+			<a onclick="javascript:history.go(-1);">返回</a>
+		</div>
+		<h1>错误 {{ error_code }}</h1><br><br>
+		<h4>错误描述<br>{{ error_description }}</h4>
+	</body>
+</html>
