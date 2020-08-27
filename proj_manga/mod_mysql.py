@@ -53,11 +53,14 @@ def UpdateUser(username, password, email, s_host, s_pass, chara, s_port, kindlee
     ori = email
     ori = ori.encode("utf8")
     emailmd5 = hashlib.md5(ori).hexdigest()
-    password = pass_hash(password)
+    user = GetUser(username)
+    if password == "" and user != -1:
+        password = GetUser(username)['pass_hash']
+    else:
+        password = pass_hash(password)
     s_pass = str(s_passencrypt(s_pass), encoding="utf-8")
     db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
     cursor = db.cursor()
-    user = GetUser(username)
     if user == -1:
         sql = """REPLACE INTO MANGA_USER(UUID, USERNAME, EMAIL, PASS, KINDLEEMAIL, S_HOST, S_PORT, S_PASS, CHARA, EMAILMD5)
              VALUES (uuid(), '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (

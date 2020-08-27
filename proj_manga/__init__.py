@@ -2,7 +2,6 @@ from gevent import monkey
 # 下面这句不加也能启动服务，但是你会发现Flask还是单线程，在一个请求未返回时，其他请求也会阻塞，所以请添加这句
 monkey.patch_all()
 
-
 from proj_manga.mod_imports import *
 from proj_manga.mod_init import init
 # noinspection PyUnresolvedReferences

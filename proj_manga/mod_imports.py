@@ -56,3 +56,5 @@ from binascii import b2a_hex, a2b_hex
 from Crypto.Cipher import AES
 # noinspection PyUnresolvedReferences
 import hashlib
+# noinspection PyUnresolvedReferences
+import re

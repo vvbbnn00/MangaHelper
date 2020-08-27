@@ -109,6 +109,7 @@ from proj_manga.mod_file import RunCleaner
 def checkfilecleaner():
     RunCleaner()
 
+
 @app.route('/donate')
 def donate():
     return render_template(html_donate)
@@ -182,11 +183,11 @@ def testmail():
         s_email = user['email']
         result = mod_email.sendtestmail(s_email, s_host, s_port, s_pass)
         if result == 0:
-            return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
+            return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送成功，三秒后自动返回"
         else:
-            return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > Failed:%s" % (result)
+            return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送失败:%s，三秒后自动返回" % (result)
     except Exception as e:
-        return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > Failed:%s" % (e)
+        return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送失败:%s，三秒后自动返回" % (e)
 
 
 @app.route('/search')
@@ -217,11 +218,11 @@ def download():
         merge = request.args['merge']
         logid = CreateTask(url, start, end, all, sendmail, merge, token)
         if logid == -1:
-            return "创建下载任务失败！"
+            return render_template(html_error, error_code="500", error_description="创建下载任务失败")
         else:
             return redirect('/getlog?logid=%s' % (logid))
     except Exception as e:
-        return "Failed: %s" % (e)
+        return render_template(html_error, error_code="500", error_description="Failed: %s" % e)
 
 
 @app.route('/getlog')
@@ -235,9 +236,9 @@ def getlog():
             result = GetLog(logid, token)
             return render_template(html_log, logid=logid, log=result)
         except KeyError as e:
-            return render_template(html_log, logid="", log="请求日记失败: 请求格式错误！")
+            return render_template(html_error, error_code="400", error_description="请求日记失败: 请求格式错误！")
         except Exception as e:
-            return render_template(html_log, logid="", log="请求日记失败: Unexpected Error <br> %s" % e)
+            return render_template(html_error, error_code="500", error_description="请求日记失败: Unexpected Error %s" % e)
 
 
 def takeSecond(elem):
@@ -269,6 +270,17 @@ def getloglist():
                     <td><a>暂无下载</a></td>
                 </tr>""" \
                         % (status, status, username, logid, datetime, logid)
+            elif status == "outdated":
+                text += """
+                <tr>
+                    <td><div id="%s">%s</div></td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td><a>日志过期</a></td>
+                    <td><a>暂无下载</a></td>
+                </tr>""" \
+                        % (status, status, username, logid, datetime)
             else:
                 text += """
                 <tr>
@@ -282,7 +294,7 @@ def getloglist():
                         % (status, status, username, logid, datetime, logid, logid)
         return render_template(html_loglist, table=text)
     except Exception as e:
-        return render_template(html_loglist, table="获取目录列表失败 %s" % e)
+        return render_template(html_error, error_code="500", error_description="获取目录列表失败")
 
 
 def get_FileSize(filePath):
@@ -303,7 +315,7 @@ def getdownlist():
         result = GetLogSingle(logid, token)
         user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
-            return render_template(html_downlist, logid="", table="您没有权限下载他人的文件")
+            return render_template(html_error, error_code="403", error_description="您没有权限下载他人的文件")
         text = ""
         if result != -1:
             path = get_value("Output_Dir") + logid
@@ -323,7 +335,7 @@ def getdownlist():
                 """ % (item, size, logid, item, logid, item)
         return render_template(html_downlist, logid=logid, table=text)
     except Exception as e:
-        return render_template(html_downlist, logid="", table="获取文件列表失败")
+        return render_template(html_error, error_code="500", error_description="获取文件列表失败")
 
 
 @app.route('/requestfile')
@@ -338,14 +350,14 @@ def requestfile():
         result = GetLogSingle(logid, token)
         user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
-            return "您没有权限下载他人的文件"
+            return render_template(html_error, error_code="403", error_description="您没有权限下载他人的文件")
         try:
             path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + filename
             return send_file(path, attachment_filename=filename)
         except Exception as e:
-            return "下载文件失败"
+            return render_template(html_error, error_code="500", error_description="下载文件失败")
     except Exception as e:
-        return "下载文件失败"
+        return render_template(html_error, error_code="500", error_description="下载文件失败")
 
 
 @app.route('/send2kindle')
@@ -363,21 +375,54 @@ def send2kindle():
         kindle_email = user['kindle_email']
         valid = (s_host != "") and (s_port != "") and (s_pass != "") and (s_email != "") and (kindle_email != "")
         if not valid:
-            return "您的电子邮箱信息不正确，请更新后重试"
+            return render_template(html_error, error_code="400", error_description="您的电子邮箱信息不正确，请更新后重试")
         logid = request.args['logid']
         filename = request.args['file']
         result = GetLogSingle(logid, token)
         user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
-            return "您没有权限操作他人的文件"
+            return render_template(html_error, error_code="403", error_description="您没有权限操作他人的文件")
         try:
             path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + filename
             mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, filename)
             if mail_result == 0:
-                return "送信请求已发送"
+                return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > 送信请求已发送"
             else:
-                return "送信请求发送失败"
+                return render_template(html_error, error_code="500", error_description="送信请求发送失败")
         except Exception as e:
-            return "送信请求发送失败"
+            return render_template(html_error, error_code="500", error_description="送信请求发送失败")
     except Exception as e:
-        return "送信请求发送失败"
+        return render_template(html_error, error_code="500", error_description="送信请求发送失败")
+
+
+def is_valid_email(email):
+    ex_email = re.compile(r'^[\w][a-zA-Z1-9.]{4,19}@[a-zA-Z0-9]{2,3}.*')
+    result = ex_email.match(email)
+    if result:
+        return 0
+    else:
+        return -1
+
+
+@app.route('/changeemail')
+@limiter.limit("1/second")
+def changeemail():
+    if not checkforlogin():
+        return redirect('/login')
+    token = session['token']
+    email = request.args['email']
+    s_host = request.args['s_host']
+    s_port = request.args['s_port']
+    s_pass = request.args['s_pass']
+    kemail = request.args['kemail']
+    if not is_valid_email(email) or s_host == "" or s_port == "" or s_pass == "" or not is_valid_email(kemail):
+        return render_template(html_error, error_code="400", error_description="请正确且完整地填写邮箱信息。")
+    username = GetUsername(token)
+    if username == -1:
+        return render_template(html_error, error_code="403", error_description="未知的用户token")
+    user = GetUser(username)
+    result = UpdateUser(username, "", email, s_host, s_pass, user['authorization'], s_port, kemail)
+    if result == 0:
+        return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
+    else:
+        return render_template(html_error, error_code="500", error_description="Failed:%s" % result)
