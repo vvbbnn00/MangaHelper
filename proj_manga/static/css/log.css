@@ -13,6 +13,7 @@
 		color:#6F6F6F;
 		font-size:20px;
 		font-weight:bold;
+		cursor:pointer;
 	}
 	h1{
 		top:40px;
@@ -33,12 +34,14 @@
 		padding-top: 10px;
 		padding-bottom: 20px;
 		box-shadow: 10px 10px 10px #CCCCCC;
+		word-wrap:break-word;
 	}
 	#log{
 		max-width: 760px;
 		padding-left: 20px;
 		line-height:35px;
 		text-align: left;
+		word-wrap:break-word;
 	}
 	#log:nth-child(1){
 		border-top-left-radius:20px;

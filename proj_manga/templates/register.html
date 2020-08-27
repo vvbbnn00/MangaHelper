@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="static/css/font-awesome-4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" type="text/css" href="static/css/register.css">
+		<meta charset="utf-8">
+		<title>注册-Manga Helper</title>
+		<script>
+		    function checkPassWord(value){
+				var arr=[],array=[1,2,3,4];
+				if((value.length < 6)||(value.length > 64)){
+					return -1;
+				}
+				if((/\d/.test(value))&&((/[a-z]/.test(value))||(/[A-Z]/.test(value)))){
+					return 0;
+				}
+				return -1;
+			}
+		  function f(){
+			var username = document.getElementById('user').value;
+			var passwd = document.getElementById('pwd').value;
+			var confirmpass = document.getElementsByName("confirmpass")[0].value;
+			var email =  document.getElementsByName("email")[0].value;
+			var rechapta =  document.getElementsByName("rechapta")[0].value;
+			document.getElementById("errortxt").innerHTML = ""
+			var first_verify = true;
+			if ((username == "")||(passwd == "")||(confirmpass == "")||(email == "")||(rechapta == "")){
+				document.getElementById("errortxt").innerHTML += "请完整填写注册表格<br>"
+				first_verify = false;
+			}
+			if (checkPassWord(passwd) != 0){
+				document.getElementById("errortxt").innerHTML += "密码过弱，密码请满足以下条件<br>1、长度在6~64个字符<br>2、必须包含至少一个大写或小写字符<br>"
+				first_verify = false;
+			}
+			if (passwd != confirmpass){
+				document.getElementById("errortxt").innerHTML += "两次密码不一致<br>"
+				first_verify = false;
+			}
+			var sReg = /[_a-zA-Z\d\-\.]+@[_a-zA-Z\d\-]+(\.[_a-zA-Z\d\-]+)+$/;
+			if (!sReg.test(email)){
+				document.getElementById("errortxt").innerHTML += "邮件地址不合法<br>"
+				first_verify = false;
+			}
+			if (first_verify == false){
+				document.getElementById("errortxt").innerHTML += "注册失败"
+			}
+			else{
+				document.getElementById("errortxt").innerHTML += "正在提交..."
+				window.location.href=("/reg?user=" + username + "&pass=" + passwd + "&email=" + email + "&chapta=" + rechapta + "&pichapta={{ pichapta }}");
+			}
+		  }
+		</script>
+	</head>
+	<body>
+		<div id="reigster" name="login">
+				<h1>注册账号</h1><br><br><br><br>
+				<div name="form" id="form">
+					<p>
+						<input type="text" name="user" id="user" class="inputbox" placeholder="用户名"></p>
+					<p>
+						<input type="password" name="pass" id="pwd" class="inputbox" placeholder="密码">
+					</p>
+					<p>
+						<input type="password" name="confirmpass" class="inputbox" id="pwd" placeholder="确认密码">
+					</p>
+					<p>
+						<input type="text" name="email" id="email" class="inputbox" placeholder="邮箱">
+					</p>
+					<div id="chaptacode"><a href="/reg"><img name="pic" src="{{ question }}"></img></a></div>
+					<p><input type="text" name="rechapta" id="rechapta" class="inputbox" placeholder="验证码（请输入纯数字）"></p>
+					<p><input id="btn_reigster" type="button" value="注册" onclick="f()" />
+					<div id="errortxt" style="">{{ errordetail }}</div>
+					<a href="/login">登录</a>
+				</div>
+		</div>
+	</body>
+</html>

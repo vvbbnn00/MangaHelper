@@ -20,6 +20,7 @@ html_downlist = "downlist.html"
 html_mainpage = "mainpage.html"
 html_donate = "donate.html"
 html_error = "error.html"
+html_reg = "register.html"
 
 if __name__ == '__main__':
     http_server = WSGIServer(('127.0.0.1', int(5000)), app)
@@ -63,7 +64,7 @@ from flask_limiter.util import get_remote_address
 limiter = Limiter(
     app,
     key_func=get_remote_address,  # 根据访问者的IP记录访问次数
-    default_limits=["2 per second"]  # 默认限制，一天最多访问200次，一小时最多访问50次
+    default_limits=["5 per second"]  # 默认限制，一天最多访问200次，一小时最多访问50次
 )
 
 
@@ -145,6 +146,7 @@ def user():
 
 
 @app.route('/login')
+@limiter.limit("3/second")
 def login():
     if checkforlogin():
         return redirect("/index")
@@ -161,6 +163,37 @@ def login():
         if checkforlogin():
             return redirect("/index")
         return render_template(html_loginform)
+
+
+@app.route('/reg')
+@limiter.limit("1/second")
+def register():
+    from proj_manga.mod_safety import requireChapta
+    picsrc, c_hash = requireChapta()
+    if checkforlogin():
+        return redirect("/index")
+    try:
+        user = request.args['user']
+        passwd = request.args['pass']
+        email = request.args['email']
+        chapta = request.args['chapta']
+        pichapta = request.args['pichapta']
+        if pass_hash(chapta.upper()) == pichapta:
+            if GetUser(user)['username'] != None:
+                return render_template(html_reg, errordetail="用户名重复", pichapta=picsrc, question=c_hash)
+            result = UpdateUser(user, passwd, email, "", "", "普通用户", "", "")
+            if result != 0:
+                return render_template(html_reg, errordetail="注册失败 %s" % result, pichapta=picsrc, question=c_hash)
+            token = CheckUser(user, passwd)
+            session['token'] = token
+            return redirect("/index")
+        else:
+            picsrc, c_hash = requireChapta()
+            return render_template(html_reg, errordetail="验证码错误", pichapta=picsrc, question=c_hash)
+    except KeyError as e:
+        if checkforlogin():
+            return redirect("/index")
+        return render_template(html_reg, errordetail="", pichapta=picsrc, question=c_hash)
 
 
 @app.route('/logout')
@@ -204,7 +237,7 @@ def search():
 
 
 @app.route('/download')
-@limiter.limit("1/2second")
+@limiter.limit("1/second")
 def download():
     if not checkforlogin():
         return redirect('/login')

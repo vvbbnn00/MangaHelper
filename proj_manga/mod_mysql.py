@@ -54,15 +54,15 @@ def UpdateUser(username, password, email, s_host, s_pass, chara, s_port, kindlee
     ori = ori.encode("utf8")
     emailmd5 = hashlib.md5(ori).hexdigest()
     user = GetUser(username)
-    if password == "" and user != -1:
+    if password == "" and user['username'] != None:
         password = GetUser(username)['pass_hash']
     else:
         password = pass_hash(password)
     s_pass = str(s_passencrypt(s_pass), encoding="utf-8")
     db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
     cursor = db.cursor()
-    if user == -1:
-        sql = """REPLACE INTO MANGA_USER(UUID, USERNAME, EMAIL, PASS, KINDLEEMAIL, S_HOST, S_PORT, S_PASS, CHARA, EMAILMD5)
+    if user['username'] == None:
+        sql = """INSERT INTO MANGA_USER(UUID, USERNAME, EMAIL, PASS, KINDLEEMAIL, S_HOST, S_PORT, S_PASS, CHARA, EMAILMD5)
              VALUES (uuid(), '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')""" % (
         username, email, password, kindleemail, s_host, s_port, s_pass, chara, emailmd5)
     else:
@@ -224,9 +224,13 @@ def GetLogSingle(logid, token, fromsystem=False):
 def GetLogListFromToken(token):
     # try:
     username = GetUsername(token)
+    user = GetUser(username)
     db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
     cursor = db.cursor()
-    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE USER = '%s'" % (username)
+    if user['authorization'] == "管理员":
+        sql = "SELECT * FROM MANGA_DOWNLOAD"
+    else:
+        sql = "SELECT * FROM MANGA_DOWNLOAD WHERE USER = '%s'" % (username)
     cursor.execute(sql)
     result = cursor.fetchall()
     db.close()

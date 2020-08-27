@@ -1,0 +1,67 @@
+	body,p,div,ul,li,h1,h2,h3,h4,h5,h6{
+		margin:0;
+		padding: 0;
+	}
+	body{
+		background: #E9E9E9; 
+		text-align:center;
+	}
+	#reigster{
+		width: 400px;
+		display: inline-block;
+		background: #FFF;
+		margin:200px auto;
+		position: relative;
+	}
+	#reigster h1{
+		text-align:center;
+		position:absolute;
+		left:133px;
+		top:30px;
+		font-size:30px;
+		color:#6F6F6F;
+	}
+	#errortxt{
+		display: inline-block;
+		word-wrap:break-word;
+		width:80%;
+		line-height:20px;
+		text-align:center;
+		position:relative;
+		font-size:18px;
+		color:#ff0000;
+	}
+	#form{
+		line-height:55px;
+		text-align: center;
+	}
+	.inputbox{
+		width: 200px;
+		height: 30px;
+		border:solid #ccc 1px;
+		border-radius: 10px;
+		padding-left: 10px;
+	}
+	#btn_reigster{
+		transition: 0.2s all;
+		width: 232px;
+		height: 30px;
+		background: rgba(0,0,0,.1);
+		border:solid #ccc 1px;
+		border-radius: 3px;
+	}
+	#btn_reigster:hover{
+		cursor: pointer;
+		background:#D8D8D8;
+	}
+	#btn_reigster:active{
+		cursor: pointer;
+		background:#A2A2A2;
+	}
+	
+	#chaptacode
+	{
+		font-size:17px;
+		line-height:20px;
+		color:#6F6F6F;
+	}

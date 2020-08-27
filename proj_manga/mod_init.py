@@ -13,3 +13,4 @@ def is64windows():
 def init():
     settinginit()
     logger_init()
+
