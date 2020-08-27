@@ -102,7 +102,12 @@ def toomanyrequests(e):
     return render_template(html_error, error_code="412", error_description=e), 200
 
 
+from proj_manga.mod_file import RunCleaner
 
+
+@app.before_request
+def checkfilecleaner():
+    RunCleaner()
 
 @app.route('/donate')
 def donate():
