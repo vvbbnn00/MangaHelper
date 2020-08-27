@@ -21,7 +21,7 @@ def sendtestmail(email, s_host, s_port, s_pass):
         # QQsmtp服务器的端口号为465或587
         s = smtplib.SMTP_SSL(s_host, s_port)
         s.set_debuglevel(1)
-        s.login(email, s_pass)
+        s.login(email, s_passdecrypt(s_pass))
         # 给receivers列表中的联系人逐个发送邮件
         for item in receivers:
             msg['To'] = to = item
@@ -58,6 +58,7 @@ def SendEmail_File(f_email, t_email, s_host, s_port, s_pass, file_path, filename
         return (0)
     except smtplib.SMTPException as e:
         return (e)
+
 def sendemail_file(f_email, t_email, s_host, s_port, s_pass, file_path, filename):
     try:
         _thread.start_new_thread(SendEmail_File,(f_email, t_email, s_host, s_port, s_pass, file_path, filename))

@@ -1,5 +1,7 @@
-#import logging
+# import logging
 import threading
+import multiprocessing
+import time
 
 from proj_manga import mod_email
 from proj_manga.mod_imports import *
@@ -7,11 +9,11 @@ from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles
 from proj_manga.mod_settings import get_value
 from proj_manga.mod_mysql import SetLogStatus, GetUser, GetUsername
 
+
 ua = UserAgent()
 errorlist = list()
-import time
 
-class thread_download (threading.Thread):
+class thread_download(threading.Thread):
     def __init__(self, ua, referer, oripath, targetpath, logmini, logid):
         threading.Thread.__init__(self)
         self.ua = ua
@@ -20,10 +22,12 @@ class thread_download (threading.Thread):
         self.targetpath = targetpath
         self.logmini = logmini
         self.logid = logid
+
     def run(self):
         Downpic(self.ua, self.referer, self.oripath, self.targetpath, self.logmini, self.logid)
 
-class thread_watch (threading.Thread):
+
+class thread_watch(threading.Thread):
     def __init__(self, title, chapter, url, ext, logmini, logid):
         threading.Thread.__init__(self)
         self.title = title
@@ -32,40 +36,53 @@ class thread_watch (threading.Thread):
         self.ext = ext
         self.logmini = logmini
         self.logid = logid
+
     def run(self):
         Watch_dmzj(self.title, self.chapter, self.url, self.ext, self.logmini, self.logid)
+
+
+log_lock = threading.Lock()
+
 
 class html_logclass():
     def __init__(self, filename):
         self.logpath = filename
 
     def info(self, message):
+        log_lock.acquire()
         datetime = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(time.time()))
         level = 'INFO'
         printdata = "<div id='log'>[%s] %s %s</div>" % (level, datetime, message)
         with open(self.logpath, 'a') as file_obj:
             file_obj.write(printdata)
+        log_lock.release()
 
     def warning(self, message):
+        log_lock.acquire()
         datetime = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(time.time()))
         level = 'WARN'
         printdata = "<div id='log'>[%s] %s %s</div>" % (level, datetime, message)
         with open(self.logpath, 'a') as file_obj:
             file_obj.write(printdata)
+        log_lock.release()
 
     def critical(self, message):
+        log_lock.acquire()
         datetime = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(time.time()))
         level = 'CRITICAL'
         printdata = "<div id='log'>[%s] %s %s</div>" % (level, datetime, message)
         with open(self.logpath, 'a') as file_obj:
             file_obj.write(printdata)
+        log_lock.release()
 
     def error(self, message):
+        log_lock.acquire()
         datetime = time.strftime('%Y-%m-%d %H-%M-%S', time.localtime(time.time()))
         level = 'ERROR'
         printdata = "<div id='log'>[%s] %s %s</div>" % (level, datetime, message)
         with open(self.logpath, 'a') as file_obj:
             file_obj.write(printdata)
+        log_lock.release()
 
 
 def Search_dmzj(text, page):
@@ -109,6 +126,7 @@ def Search_dmzj(text, page):
 
 
 def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, token):
+    max_threads = multiprocessing.cpu_count()
     logmini = html_logclass(get_value("Log_Dir") + logid + ".log")
     try:
         tempdir = get_value("Temp_Dir")
@@ -143,11 +161,15 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
                 logmini.info("链接：" + referlink)
                 if (sid in downloadlist) or (downloadall):
                     # n_thread = thread_watch(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
+                    # while True:
+                    #     if (len(threading.enumerate()) < int(max_threads / 2)):
+                    #         #这里除以2的原因是为了保证下载能够正常运行，避免死锁
+                    #         break
                     # n_thread.start()
                     # threads.append(n_thread)
                     Watch_dmzj(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
-        for t in threads:
-            t.join()
+        # for t in threads:
+        #     t.join()
         if merge == True:
             logmini.info("自动合并被设置为开，正在合并文件（注意：合并后单独文件将会被删除）。")
             path = get_value("Output_Dir") + logid + "/"
@@ -172,7 +194,7 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
             s_email = user['email']
             kindle_email = user['kindle_email']
             valid = (s_host != "") and (s_port != "") and (s_pass != "") and (s_email != "") and (
-                            kindle_email != "")
+                    kindle_email != "")
             try:
                 if not valid:
                     raise Exception
@@ -194,7 +216,9 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
         logmini.error("任务失败。%s" % e)
         SetLogStatus(logid, "failed")
 
+
 def Watch_dmzj(title, chapter, url, ext, logmini, logid):
+    max_threads = multiprocessing.cpu_count()
     tempdir = get_value("Temp_Dir")
     outdir = get_value("Output_Dir")
     folderpath = ""
@@ -227,12 +251,16 @@ def Watch_dmzj(title, chapter, url, ext, logmini, logid):
         except Exception as e:
             logmini.warning(e)
         filepath = str(page).zfill(3)
-        newthread = thread_download(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
-        threads.append(newthread)
-        newthread.start()
+        # newthread = thread_download(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
+        # while True:
+        #     if (len(threading.enumerate()) < max_threads):
+        #         break
+        # threads.append(newthread)
+        # newthread.start()
+        Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
 
-    for t in threads:
-        t.join()
+    # for t in threads:
+    #     t.join()
 
     if ext == "pdf":
         folder2pdf(folderpath, logmini, logid)

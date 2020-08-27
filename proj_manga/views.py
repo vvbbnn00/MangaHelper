@@ -1,3 +1,5 @@
+from gevent.pywsgi import WSGIServer
+
 from proj_manga import mod_email
 from proj_manga.mod_dmzjsearch import Search_dmzj
 from proj_manga.mod_imports import *
@@ -18,6 +20,12 @@ html_loglist = "loglist.html"
 html_downlist = "downlist.html"
 html_mainpage = "mainpage.html"
 html_donate = "donate.html"
+html_error = "error.html"
+
+if __name__ == '__main__':
+    http_server = WSGIServer(('127.0.0.1', int(5000)), app)
+    http_server.serve_forever()
+
 
 def userpage(token):
     user = GetUser(GetUsername(token))
@@ -49,9 +57,58 @@ def checkuser(token):
     else:
         return 0
 
+
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,  # 根据访问者的IP记录访问次数
+    default_limits=["2 per second"]  # 默认限制，一天最多访问200次，一小时最多访问50次
+)
+
+
+@app.errorhandler(429)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="429", error_description=e), 429
+
+
+@app.errorhandler(403)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="403", error_description=e), 403
+
+
+@app.errorhandler(404)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="404", error_description=e), 404
+
+
+@app.errorhandler(500)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="500", error_description=e), 500
+
+
+@app.errorhandler(414)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="414", error_description=e), 414
+
+
+@app.errorhandler(413)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="413", error_description=e), 413
+
+
+@app.errorhandler(412)
+def toomanyrequests(e):
+    return render_template(html_error, error_code="412", error_description=e), 412
+
+
+
+
 @app.route('/donate')
 def donate():
     return render_template(html_donate)
+
 
 @app.route('/')
 @app.route('/index')
@@ -61,12 +118,14 @@ def index():
     else:
         return redirect("/introduce")
 
+
 @app.route('/introduce')
 def introduce():
     if checkforlogin():
         return render_template(html_introduce2)
     else:
         return render_template(html_introduce)
+
 
 @app.route('/user')
 def user():
@@ -106,15 +165,18 @@ def logout():
 
 
 @app.route('/testemail')
+@limiter.limit("1/10second")
 def testmail():
     if not checkforlogin():
         return redirect('/login')
     try:
-        t_email = request.args['email']
-        s_host = request.args['s_host']
-        s_port = request.args['s_port']
-        s_pass = request.args['s_pass']
-        result = mod_email.sendtestmail(t_email, s_host, s_port, s_pass)
+        token = session['token']
+        user = GetUser(GetUsername(token))
+        s_host = user['s_host']
+        s_port = user['s_port']
+        s_pass = user['s_pass']
+        s_email = user['email']
+        result = mod_email.sendtestmail(s_email, s_host, s_port, s_pass)
         if result == 0:
             return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
         else:
@@ -124,6 +186,7 @@ def testmail():
 
 
 @app.route('/search')
+@limiter.limit("1/10second")
 def search():
     if not checkforlogin():
         return redirect('/login')
@@ -136,6 +199,7 @@ def search():
 
 
 @app.route('/download')
+@limiter.limit("1/2second")
 def download():
     if not checkforlogin():
         return redirect('/login')
@@ -153,7 +217,7 @@ def download():
         else:
             return redirect('/getlog?logid=%s' % (logid))
     except Exception as e:
-       return "Failed: %s" % (e)
+        return "Failed: %s" % (e)
 
 
 @app.route('/getlog')
@@ -171,8 +235,10 @@ def getlog():
         except Exception as e:
             return render_template(html_log, logid="", log="请求日记失败: Unexpected Error <br> %s" % e)
 
+
 def takeSecond(elem):
     return elem[1]
+
 
 @app.route('/getloglist')
 def getloglist():
@@ -212,7 +278,7 @@ def getloglist():
                         % (status, status, username, logid, datetime, logid, logid)
         return render_template(html_loglist, table=text)
     except Exception as e:
-       return render_template(html_loglist, table="获取目录列表失败 %s" % e)
+        return render_template(html_loglist, table="获取目录列表失败 %s" % e)
 
 
 def get_FileSize(filePath):
@@ -253,10 +319,11 @@ def getdownlist():
                 """ % (item, size, logid, item, logid, item)
         return render_template(html_downlist, logid=logid, table=text)
     except Exception as e:
-       return render_template(html_downlist, logid="", table="获取文件列表失败")
+        return render_template(html_downlist, logid="", table="获取文件列表失败")
 
 
 @app.route('/requestfile')
+@limiter.limit("1/second")
 def requestfile():
     if not checkforlogin():
         return redirect('/login')
@@ -274,10 +341,11 @@ def requestfile():
         except Exception as e:
             return "下载文件失败"
     except Exception as e:
-       return "下载文件失败"
+        return "下载文件失败"
 
 
 @app.route('/send2kindle')
+@limiter.limit("1/second")
 def send2kindle():
     if not checkforlogin():
         return redirect('/login')
@@ -308,4 +376,4 @@ def send2kindle():
         except Exception as e:
             return "送信请求发送失败"
     except Exception as e:
-       return "送信请求发送失败"
+        return "送信请求发送失败"

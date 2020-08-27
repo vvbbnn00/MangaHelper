@@ -9,3 +9,4 @@ if __name__ == '__main__':
     # Analyze_dmzj("https://manhua.dmzj.com/huiyedaxiaojiexiangrangwogaobaitiancaimendelianait/", "pdf",
     #                             [24, 25, 26, 44], False)
     # printerrorlist()
+

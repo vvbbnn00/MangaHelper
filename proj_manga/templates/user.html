@@ -83,11 +83,15 @@
 			window.location.href=("/changeemail?email="+email+"&s_host="+s_host+"&s_port="+s_port+"&s_pass="+s_pass+"&kemail="+kindle_email);
 		}
 		function test_email(){
-		    var email = document.getElementsByName('email')[0].value;
+		    /*
+			var email = document.getElementsByName('email')[0].value;
 			var s_host = document.getElementsByName('s_host')[0].value;
 			var s_port = document.getElementsByName('s_port')[0].value;
 			var s_pass = document.getElementsByName('s_pass')[0].value;
 			window.location.href=("/testemail?email="+email+"&s_host="+s_host+"&s_port="+s_port+"&s_pass="+s_pass);
+			*/
+			window.location.href=("/testemail");
+
 		}
 		function key_search() {
 			if (event.keyCode == "13") {
