@@ -117,7 +117,7 @@ def folder2pdf(folderpath, logmini, logid):
             os.mkdir(outdir + logid)
     except Exception as e:
         logmini.error("无法创建文件夹！%s" % e)
-    if get_value("GenerateBookMark") == True:
+    if get_value("GenerateBookMark") == "True":
         try:
             im1.save(tempdir + pdf_name + "_ori.pdf", "PDF", resolution=100.0, save_all=True, append_images=im_list)
             logmini.info("PDF初步创建完成：" + tempdir + pdf_name + "_ori.pdf，生成书签...")
@@ -130,7 +130,7 @@ def folder2pdf(folderpath, logmini, logid):
                 logmini.info("成功生成PDF")
             else:
                 logmini.warning("PDF生成失败 %s" % (result))
-            if get_value("CleanOriPDF") == True:
+            if get_value("CleanOriPDF") == "True":
                 logmini.info("清理PDF缓存")
                 result = delfile(tempdir + pdf_name + "_ori.pdf")
                 if result != 0:
@@ -144,7 +144,7 @@ def folder2pdf(folderpath, logmini, logid):
             logmini.info("PDF创建完成：", pdf_name + ".pdf")
         except Exception as e:
             logmini.error(e)
-    if get_value("CleanOriPic") == True:
+    if get_value("CleanOriPic") == "True":
         logmini.info("清理图片缓存")
         result = delfolder(path)
         if result != 0:

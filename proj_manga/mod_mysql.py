@@ -39,6 +39,12 @@ def initialize():
                 STATUS CHAR(255) NOT NULL
               )"""
     cursor.execute(database)
+    cursor.execute("DROP TABLE IF EXISTS MANGA_SETTINGS")
+    database = """CREATE TABLE MANGA_SETTINGS (
+                SettingName CHAR(255) NOT NULL PRIMARY KEY,
+                S_Value CHAR(255) NOT NULL
+              )"""
+    cursor.execute(database)
     db.close()
 
 
@@ -94,7 +100,18 @@ def GetUser(username):
         user['emailmd5'] = result[9]
         return user
     except:
-        return -1
+        user = {}
+        user['uuid'] = None
+        user['username'] = None
+        user['email'] = None
+        user['pass_hash'] = None
+        user['kindle_email'] = None
+        user['s_host'] = None
+        user['s_port'] = None
+        user['s_pass'] = None
+        user['authorization'] = None
+        user['emailmd5'] = None
+        return user
 
 
 def CheckUser(username, password):
@@ -181,7 +198,7 @@ def SetLogStatus(logid, status):
     db.close()
     return 0
 
-def GetLogSingle(logid, token):
+def GetLogSingle(logid, token, fromsystem=False):
     # try:
     db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
     cursor = db.cursor()
@@ -192,7 +209,7 @@ def GetLogSingle(logid, token):
     if result == None:
         return -1
     user = GetUser(GetUsername(token))
-    if (result[0] != user['username']) and (user['authorization'] != "管理员"):
+    if (result[0] != user['username']) and (user['authorization'] != "管理员") and (not fromsystem):
         return -1
     log = {}
     log['username'] = result[0]
@@ -212,7 +229,7 @@ def GetLogListFromToken(token):
     db.close()
     return result[::-1]
 
-def GetLog(logid, token):
+def GetLog(logid, token, fromsystem=False):
     # try:
     db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
     cursor = db.cursor()
@@ -223,7 +240,7 @@ def GetLog(logid, token):
     if result == None:
         return "没有找到这个日记"
     user = GetUser(GetUsername(token))
-    if (result[0] != user['username']) and (user['authorization'] != "管理员"):
+    if (result[0] != user['username']) and (user['authorization'] != "管理员") and (not fromsystem):
         return "您没有权限访问其他人的日记"
     log = open(get_value('Log_Dir') + logid + ".log", "r")
     text = log.read()
@@ -235,16 +252,16 @@ def GetLog(logid, token):
 #    return "请求日记失败: %s" % (e)
 
 
-if __name__ == '__main__':
-    # initialize()
-    # print(UpdateUser("admin", "faL1p9n3dP", "vvbbnn00@foxmail.com", "smtp.qq.com", "uolurlmtzximbaga", "管理员", "465", "vvbbnn00@kindle.cn"))
-    # print(GetUser("admin"))
-    # print(CheckUser("admin", "faL1p9n3dP"))
-    # print(GetUsername(CheckUser("admin", "faL1p9n3dP")))
-    # print(CreateTask("https://manhua.dmzj.com/huiyedaxiaojiexiangrangwogaobaitiancaimendelianait", "", "", "false","","",CheckUser("admin", "faL1p9n3dP")))
-    # print(GetLogListFromToken(CheckUser("admin", "faL1p9n3dP")))
-    # print(SetLogStatus("downlog_admin_20200826160607", "complete"))
-    # print(GetLogStatus("downlog_admin_20200826160607", CheckUser("admin", "faL1p9n3dP")))
-    # while 1:
-    #     pass
-    pass
+# if __name__ == '__main__':
+#     initialize()
+#     print(UpdateUser("admin", "faL1p9n3dP", "vvbbnn00@foxmail.com", "smtp.qq.com", "uolurlmtzximbaga", "管理员", "465", "vvbbnn00@kindle.cn"))
+#     print(GetUser("admin"))
+#     print(CheckUser("admin", "faL1p9n3dP"))
+#     print(GetUsername(CheckUser("admin", "faL1p9n3dP")))
+#     print(CreateTask("https://manhua.dmzj.com/huiyedaxiaojiexiangrangwogaobaitiancaimendelianait", "", "", "false","","",CheckUser("admin", "faL1p9n3dP")))
+#     print(GetLogListFromToken(CheckUser("admin", "faL1p9n3dP")))
+#     print(SetLogStatus("downlog_admin_20200826160607", "complete"))
+#     print(GetLogStatus("downlog_admin_20200826160607", CheckUser("admin", "faL1p9n3dP")))
+#     while 1:
+#         pass
+#     pass
