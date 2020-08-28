@@ -1,9 +1,7 @@
-
 from proj_manga.mod_file import logger_init
 from proj_manga.mod_imports import *
 from proj_manga.mod_settings import settinginit
 
-ChromePath = ""
 
 
 def is64windows():
@@ -11,6 +9,7 @@ def is64windows():
 
 
 def init():
+
     settinginit()
     logger_init()
 

@@ -4,9 +4,16 @@ from proj_manga import mod_email
 from proj_manga.mod_dmzjsearch import Search_dmzj
 from flask import *
 from proj_manga import app
-
-# <!--在这里总共用到了一下变量 emailmd5 username authorization email s_host s_port s_pass kindle_email-->
+from gevent.pywsgi import WSGIServer
 from proj_manga.mod_mysql import *
+
+port = "5000"
+
+if __name__ == '__main__':
+    http_server = WSGIServer(('0.0.0.0', int(port)), app)
+    print("监听端口 %s" % port)
+    http_server.serve_forever()
+
 
 html_introduce = "introduce.html"
 html_introduce2 = "introduce2.html"
@@ -529,3 +536,4 @@ def setauth():
         return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
     else:
         return render_template(html_error, error_code="500", error_description="Failed:%s" % result)
+

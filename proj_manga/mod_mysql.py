@@ -11,43 +11,6 @@ Mysql_user = get_value("Mysql_user")
 
 temprory_token_list = {}
 
-
-def initialize():
-    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
-    cursor = db.cursor()
-    # 初始化用户信息数据库
-    cursor.execute("DROP TABLE IF EXISTS MANGA_USER")
-    database = """CREATE TABLE MANGA_USER (
-                UUID CHAR (255) NOT NULL PRIMARY KEY ,
-                USERNAME CHAR(255) NOT NULL,
-                EMAIL CHAR(255),
-                PASS CHAR(255) NOT NULL,  
-                KINDLEEMAIL CHAR(255), 
-                S_HOST CHAR(255), 
-                S_PORT CHAR(255), 
-                S_PASS CHAR(255),
-                CHARA CHAR(255),
-                EMAILMD5 CHAR(255)
-              )"""
-    cursor.execute(database)
-    # 初始化下载日志记录数据库
-    cursor.execute("DROP TABLE IF EXISTS MANGA_DOWNLOAD")
-    database = """CREATE TABLE MANGA_DOWNLOAD (
-                USER CHAR(255) NOT NULL,
-                LOGID CHAR(255) NOT NULL PRIMARY KEY,
-                TIME DATETIME NOT NULL,
-                STATUS CHAR(255) NOT NULL
-              )"""
-    cursor.execute(database)
-    cursor.execute("DROP TABLE IF EXISTS MANGA_SETTINGS")
-    database = """CREATE TABLE MANGA_SETTINGS (
-                SettingName CHAR(255) NOT NULL PRIMARY KEY,
-                S_Value CHAR(255) NOT NULL
-              )"""
-    cursor.execute(database)
-    db.close()
-
-
 def UpdateUser(username, password, email, s_host, s_pass, chara, s_port, kindleemail):
     # 更新用户
     ori = email
