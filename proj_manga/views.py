@@ -1,4 +1,4 @@
-from gevent.pywsgi import WSGIServer
+
 
 from proj_manga import mod_email
 from proj_manga.mod_dmzjsearch import Search_dmzj
@@ -23,9 +23,7 @@ html_error = "error.html"
 html_reg = "register.html"
 html_search = "searchlist.html"
 
-if __name__ == '__main__':
-    http_server = WSGIServer(('127.0.0.1', int(5000)), app)
-    http_server.serve_forever()
+
 
 
 def userpage(token):

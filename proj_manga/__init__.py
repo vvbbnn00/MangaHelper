@@ -15,5 +15,8 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.secret_key = randomSecretKey(64)
 app.debug = True
 
-
+from gevent.pywsgi import WSGIServer
 import proj_manga.views
+if __name__ == '__main__':
+    http_server = WSGIServer(('0.0.0.0', int(5000)), app)
+    http_server.serve_forever()
