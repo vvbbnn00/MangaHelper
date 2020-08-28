@@ -6,6 +6,7 @@ def _init():
 
 def settinginit():
     _init()
+    set_value("Task_Running", False, local=True)        # （不要更改）任务状态
     set_value("Mysql_host", "localhost", local=True)        # Mysql服务器地址
     set_value("Mysql_user", "operator", local=True)         # Mysql服务器用户名
     set_value("Mysql_pass", "operator", local=True)         # Mysql服务器密码

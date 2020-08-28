@@ -2,7 +2,7 @@ import _thread
 
 from proj_manga.mod_imports import *
 from proj_manga.mod_safety import pass_hash, s_passencrypt
-from proj_manga.mod_settings import get_value
+from proj_manga.mod_settings import get_value, set_value
 
 Mysql_host = get_value("Mysql_host")
 Mysql_pass = get_value("Mysql_pass")
@@ -177,49 +177,59 @@ def CreateTask(url, start, end, all, sendmail, merge, token):
         cursor = db.cursor()
         sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
                      VALUES ('%s', '%s', '%s', '%s')""" % (
-        username, logid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "running")
-        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid, sendmail, merge, token))
+        username, logid, datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "queuing")
         cursor.execute(sql)
         db.close()
+        _thread.start_new_thread(Analyze_dmzj, (url, "pdf", downlist, all, logid, sendmail, merge, token))
         return logid
     except Exception as e:
         db.close()
         return e
 
 def SetLogStatus(logid, status):
-    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
-    cursor = db.cursor()
-    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
-    cursor.execute(sql)
-    result = cursor.fetchone()
-    user = result[0]
-    time = result[2]
-    sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
-                 VALUES ('%s', '%s', '%s', '%s')""" % (
-        user, logid, time, status)
-    cursor.execute(sql)
-    db.close()
-    return 0
+    try:
+        db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+        cursor = db.cursor()
+        sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
+        cursor.execute(sql)
+        result = cursor.fetchone()
+        user = result[0]
+        time = result[2]
+        sql = """REPLACE INTO MANGA_DOWNLOAD(USER, LOGID, TIME, STATUS)
+                     VALUES ('%s', '%s', '%s', '%s')""" % (
+            user, logid, time, status)
+        cursor.execute(sql)
+        db.close()
+        return 0
+    except:
+        return -1
 
 def GetLogSingle(logid, token, fromsystem=False):
-    # try:
-    db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
-    cursor = db.cursor()
-    sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
-    cursor.execute(sql)
-    result = cursor.fetchone()
-    db.close()
-    if result == None:
-        return -1
-    user = GetUser(GetUsername(token))
-    if (result[0] != user['username']) and (user['authorization'] != "管理员") and (not fromsystem):
-        return -1
-    log = {}
-    log['username'] = result[0]
-    log['logid'] = result[1]
-    log['time'] = result[2]
-    log['status'] = result[3]
-    return log
+    try:
+        db = MySQLdb.connect(Mysql_host, Mysql_user, Mysql_pass, Mysql_db, charset='utf8')
+        cursor = db.cursor()
+        sql = "SELECT * FROM MANGA_DOWNLOAD WHERE LOGID = '%s'" % (logid)
+        cursor.execute(sql)
+        result = cursor.fetchone()
+        db.close()
+        if result == None:
+            return -1
+        user = GetUser(GetUsername(token))
+        if (result[0] != user['username']) and (user['authorization'] != "管理员") and (not fromsystem):
+            return -1
+        log = {}
+        log['username'] = result[0]
+        log['logid'] = result[1]
+        log['time'] = result[2]
+        log['status'] = result[3]
+        return log
+    except:
+        log = {}
+        log['username'] = None
+        log['logid'] = None
+        log['time'] = None
+        log['status'] = None
+        return log
 
 def GetLogListFromToken(token):
     # try:

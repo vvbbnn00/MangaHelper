@@ -182,7 +182,7 @@ def register():
         if pass_hash(chapta.upper()) == pichapta:
             if GetUser(user)['username'] != None:
                 return render_template(html_reg, errordetail="用户名重复", pichapta=picsrc, question=c_hash)
-            result = UpdateUser(user, passwd, email, "", "", "普通用户", "", "")
+            result = UpdateUser(user, passwd, email, "", "", "未验证", "", "")
             if result != 0:
                 return render_template(html_reg, errordetail="注册失败 %s" % result, pichapta=picsrc, question=c_hash)
             token = CheckUser(user, passwd)
@@ -230,6 +230,12 @@ def search():
     if not checkforlogin():
         return redirect('/login')
     try:
+        token = session['token']
+        user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         text = request.args['text']
         page = request.args['page']
         result = Search_dmzj(text, page)
@@ -247,6 +253,11 @@ def download():
         return redirect('/login')
     try:
         token = session['token']
+        user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         url = request.args['url']
         start = request.args['from']
         end = request.args['to']
@@ -257,7 +268,7 @@ def download():
         if logid == -1:
             return render_template(html_error, error_code="500", error_description="创建下载任务失败")
         else:
-            return redirect('/getlog?logid=%s' % (logid))
+            return redirect('/getloglist')
     except Exception as e:
         return render_template(html_error, error_code="500", error_description="Failed: %s" % e)
 
@@ -269,6 +280,11 @@ def getlog():
     else:
         try:
             token = session['token']
+            user = GetUser(GetUsername(token))
+            auth = user['authorization']
+            if auth == "未验证":
+                return render_template(html_error, error_code="403",
+                                       error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
             logid = request.args['logid']
             result = GetLog(logid, token)
             return render_template(html_log, logid=logid, log=result)
@@ -288,6 +304,11 @@ def getloglist():
         return redirect('/login')
     try:
         token = session['token']
+        user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         loglist = list(GetLogListFromToken(token))
         loglist.sort(reverse=True, key=takeSecond)
         text = ""
@@ -316,6 +337,17 @@ def getloglist():
                     <td>%s</td>
                     <td><a>日志过期</a></td>
                     <td><a>暂无下载</a></td>
+                </tr>""" \
+                        % (status, status, username, logid, datetime)
+            elif status == "queuing":
+                text += """
+                <tr>
+                    <td><div id="%s">%s</div></td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td><a>队列中</a></td>
+                    <td><a>队列中</a></td>
                 </tr>""" \
                         % (status, status, username, logid, datetime)
             else:
@@ -348,9 +380,13 @@ def getdownlist():
         return redirect('/login')
     try:
         token = session['token']
+        user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         logid = request.args['logid']
         result = GetLogSingle(logid, token)
-        user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
             return render_template(html_error, error_code="403", error_description="您没有权限下载他人的文件")
         text = ""
@@ -382,10 +418,14 @@ def requestfile():
         return redirect('/login')
     try:
         token = session['token']
+        user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         logid = request.args['logid']
         filename = request.args['file']
         result = GetLogSingle(logid, token)
-        user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
             return render_template(html_error, error_code="403", error_description="您没有权限下载他人的文件")
         try:
@@ -405,6 +445,10 @@ def send2kindle():
     try:
         token = session['token']
         user = GetUser(GetUsername(token))
+        auth = user['authorization']
+        if auth == "未验证":
+            return render_template(html_error, error_code="403",
+                                   error_description="您的账号还未通过管理员验证，没有权限使用该功能，请联系管理员。")
         s_host = user['s_host']
         s_port = user['s_port']
         s_pass = user['s_pass']
@@ -416,7 +460,6 @@ def send2kindle():
         logid = request.args['logid']
         filename = request.args['file']
         result = GetLogSingle(logid, token)
-        user = GetUser(GetUsername(token))
         if (result['username'] != user['username']) and (user['authorization'] != "管理员"):
             return render_template(html_error, error_code="403", error_description="您没有权限操作他人的文件")
         try:
@@ -459,6 +502,31 @@ def changeemail():
         return render_template(html_error, error_code="403", error_description="未知的用户token")
     user = GetUser(username)
     result = UpdateUser(username, "", email, s_host, s_pass, user['authorization'], s_port, kemail)
+    if result == 0:
+        return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
+    else:
+        return render_template(html_error, error_code="500", error_description="Failed:%s" % result)
+
+
+@app.route('/setauth')
+@limiter.limit("1/second")
+def setauth():
+    if not checkforlogin():
+        return redirect('/login')
+    token = session['token']
+    username = request.args['user']
+    auth = request.args['auth']
+    if GetUser(GetUsername(token))['authorization'] != "管理员":
+        return render_template(html_error, error_code="403", error_description="您没有权限操作用户组。")
+    user = GetUser(username)
+    if user['username'] == None:
+        return render_template(html_error, error_code="400", error_description="用户不存在")
+    email = user['email']
+    s_host = user['s_host']
+    s_port = user['s_port']
+    s_pass = user['s_pass']
+    k_email = user['kindle_email']
+    result = UpdateUser(username, "", email, s_host, s_pass, auth, s_port, k_email)
     if result == 0:
         return "<meta http-equiv=\"refresh\" content=\"2;url='user'\" > OK"
     else:

@@ -4,7 +4,7 @@ import multiprocessing
 from proj_manga import mod_email
 from proj_manga.mod_imports import *
 from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles, GetPic_Base64
-from proj_manga.mod_settings import get_value
+from proj_manga.mod_settings import get_value, set_value
 from proj_manga.mod_mysql import SetLogStatus, GetUser, GetUsername
 
 
@@ -123,6 +123,10 @@ def Search_dmzj(text, page):
 
 
 def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, token):
+    while get_value("Task_Running") == True:
+        time.sleep(1)
+    set_value("Task_Running", True, local=True)
+    SetLogStatus(logid, "running")
     max_threads = multiprocessing.cpu_count()
     logmini = html_logclass(get_value("Log_Dir") + logid + ".log")
     try:
@@ -214,6 +218,8 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
     except Exception as e:
         logmini.error("任务失败。%s" % e)
         SetLogStatus(logid, "failed")
+    finally:
+        set_value("Task_Running", False, local=True)
 
 
 def Watch_dmzj(title, chapter, url, ext, logmini, logid):
@@ -259,8 +265,8 @@ def Watch_dmzj(title, chapter, url, ext, logmini, logid):
             # threads.append(newthread)
             # newthread.start()
             Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
-            if ext == "pdf":
-                folder2pdf(folderpath, logmini, logid)
+        if ext == "pdf":
+            folder2pdf(folderpath, logmini, logid)
     except Exception as e:
         logmini.error("%s_%s 下载失败:%s" % (title, chapter, e))
         SetLogStatus(logid, "uncompleted")

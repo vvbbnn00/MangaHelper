@@ -93,6 +93,13 @@
 		width:100px;
 		color:#FFFFFF;
 		}
+	#queuing{
+		display: inline-block;
+		border-radius: 20px;
+		background-color:#0066FF;
+		width:100px;
+		color:#FFFFFF;
+		}
 	#logpanel{
 		text-align:center;
 		display: inline-block;
