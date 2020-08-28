@@ -9,7 +9,7 @@ def is64windows():
 
 
 def init():
-
+    print("服务器正在启动")
     settinginit()
     logger_init()
 
