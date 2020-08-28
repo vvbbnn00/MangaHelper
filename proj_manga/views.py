@@ -21,6 +21,7 @@ html_mainpage = "mainpage.html"
 html_donate = "donate.html"
 html_error = "error.html"
 html_reg = "register.html"
+html_search = "searchlist.html"
 
 if __name__ == '__main__':
     http_server = WSGIServer(('127.0.0.1', int(5000)), app)
@@ -231,10 +232,13 @@ def search():
     try:
         text = request.args['text']
         page = request.args['page']
-        return Search_dmzj(text, page)
+        result = Search_dmzj(text, page)
+        if result == -1:
+            return render_template(html_error, error_code="500", error_description="搜索失败")
+        return render_template(html_search, search=result['search'], nextpage=result['next_page'],
+                               page=result['page'], table=result['table'])
     except Exception as e:
-        return "Search Failed:%s" % (e)
-
+        return render_template(html_error, error_code="500", error_description="搜索失败")
 
 @app.route('/download')
 @limiter.limit("1/second")

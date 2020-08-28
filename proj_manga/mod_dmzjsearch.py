@@ -3,7 +3,7 @@ import multiprocessing
 
 from proj_manga import mod_email
 from proj_manga.mod_imports import *
-from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles
+from proj_manga.mod_pic2pdf import folder2pdf, Downpic, mergefiles, GetPic_Base64
 from proj_manga.mod_settings import get_value
 from proj_manga.mod_mysql import SetLogStatus, GetUser, GetUsername
 
@@ -84,43 +84,42 @@ class html_logclass():
 
 
 def Search_dmzj(text, page):
-    output = ""
-    tempdir = get_value("Temp_Dir")
-    outdir = get_value("Output_Dir")
-    url = "https://manhua.dmzj.com/tags/search.shtml?" + "s=" + text + "&p=" + page
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')
-    output += "<br>" + "<a href=\"\\user\">返回</a>"
-    output += "<br>" + "尝试获取网页数据,这可能需要较长的时间"
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.implicitly_wait(30)
-    driver.get(url)
-    time.sleep(1)
-    html = driver.execute_script('return document.documentElement.outerHTML')
-    driver.close()  # 记得关闭，否则占用内存资源
-    soup = BeautifulSoup(html, "html.parser")
-    category = soup.find("div", class_="tcaricature_new").find("div", class_="tcaricature_block tcaricature_block2")
-    list = category.find_all("ul")
-    for item in list:
-        subitem = item.find_all("li")
-        title = subitem[0]
-        detail = subitem[1]
-        output += "<br>" + ("------作品------")
-        output += "<br>" + (title.find("a").getText())
-        output += "<br>" + ("封面：<a href=\"" + title.find("img").__getitem__("src") + "\">" +
-                            title.find("img").__getitem__("src") + "</a>")
-        output += "<br>" + ("观看链接：<a href=\"https:" + title.find("a").__getitem__("href") + "\">" + "https:" +
-                            title.find("a").__getitem__("href") + "</a>")
-        author = detail.find_all("div")[0].getText()
-        latest = detail.find_all("div")[1].getText()
-        output += "<br>" + (author)
-        output += "<br>" + (latest)
-        output += "<br>" + ("----------------")
-    output += "<br>" + ("您正在浏览第" + str(page) + "页的搜索结果")
-    output += "<br> <a href=/search?text=" + text + "&page=" + str(int(page) + 1) + ">点击浏览第" + str(
-        int(page) + 1) + "页</a>"
-    return output
+    try:
+        output = ""
+        url = "https://manhua.dmzj.com/tags/search.shtml?" + "s=" + text + "&p=" + page
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.implicitly_wait(30)
+        driver.get(url)
+        time.sleep(1)
+        html = driver.execute_script('return document.documentElement.outerHTML')
+        driver.close()  # 记得关闭，否则占用内存资源
+        soup = BeautifulSoup(html, "html.parser")
+        category = soup.find("div", class_="tcaricature_new").find("div", class_="tcaricature_block tcaricature_block2")
+        list = category.find_all("ul")
+        for item in list:
+            subitem = item.find_all("li")
+            title = subitem[0]
+            detail = subitem[1]
+            output += "<tr>"
+            referer = "https:%s" % title.find("a").__getitem__("href")
+            picdata = GetPic_Base64(referer, title.find("img").__getitem__("src"))
+            output += "<td><img class=\"r_image\" src=\"%s\"/></td>" % picdata
+            output += "<td>%s</td>" % (title.find("a").getText())
+            author = detail.find_all("div")[0].getText()
+            latest = detail.find_all("div")[1].getText()
+            output += "<td>%s</td>" % author
+            output += "<td>%s</td>" % latest
+            output += "<td style=\"width:50px\"><a href='%s'>%s</td></tr>" % (referer, referer)
+        page = str(page)
+        next_page = str(int(page) + 1)
+        search = text
+        table = output
+        return {'search': search, 'page': page, 'next_page': next_page, 'table': table}
+    except Exception as e:
+        return -1
 
 
 def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, token):
@@ -158,6 +157,7 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
                 referlink = "https://" + rooturl + item.a['href']
                 logmini.info("链接：" + referlink)
                 if (sid in downloadlist) or (downloadall):
+                    # 此处的多线程决定废弃
                     # n_thread = thread_watch(title.getText(), item.find("a").getText(), referlink, ext, logmini, logid)
                     # while True:
                     #     if (len(threading.enumerate()) < int(max_threads / 2)):
@@ -198,10 +198,11 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
                     raise Exception
                 path = get_value("Output_Dir") + logid
                 filelist = os.listdir(path)
+                from proj_manga.mod_email import SendEmail_File
                 for file in filelist:
                     logmini.info("正在发送文件 %s" % file)
                     path = os.path.join(os.getcwd(), get_value("Output_Dir")) + logid + "/" + file
-                    mail_result = mod_email.sendemail_file(s_email, kindle_email, s_host, s_port, s_pass, path, file)
+                    mail_result = SendEmail_File(s_email, kindle_email, s_host, s_port, s_pass, path, file)
                     if mail_result == 0:
                         logmini.info("发送文件 %s 成功" % file)
                     else:
@@ -216,52 +217,56 @@ def Analyze_dmzj(url, ext, downloadlist, downloadall, logid, sendmail, merge, to
 
 
 def Watch_dmzj(title, chapter, url, ext, logmini, logid):
-    max_threads = multiprocessing.cpu_count()
-    tempdir = get_value("Temp_Dir")
-    outdir = get_value("Output_Dir")
-    folderpath = ""
-    oriurl = url
-    chrome_options = Options()
-    chrome_options.add_argument('--headless')
-    chrome_options.add_argument('--disable-gpu')
-    logmini.info("尝试获取网页数据,这可能需要较长的时间")
-    driver = webdriver.Chrome(options=chrome_options)
-    driver.get(url)
-    html = driver.execute_script('return document.documentElement.outerHTML')
-    soup = BeautifulSoup(html, "html.parser")
-    urls = soup.find_all("option")
-    page = 0
-    driver.close()  # 记得关闭，否则占用内存资源
-    threads = []
-    for url in urls:
-        page += 1
-        logmini.info(url.getText())
-        imgurl = "https:" + url.__getitem__('value')
-        logmini.info(imgurl)
-        folderpath = title + "_" + chapter
-        try:
-            if not os.path.exists(tempdir):
-                os.mkdir(tempdir)
-            if not os.path.exists(outdir):
-                os.mkdir(outdir)
-            if not os.path.exists(tempdir + folderpath):
-                os.mkdir(tempdir + folderpath)
-        except Exception as e:
-            logmini.warning(e)
-        filepath = str(page).zfill(3)
-        # newthread = thread_download(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
-        # while True:
-        #     if (len(threading.enumerate()) < max_threads):
-        #         break
-        # threads.append(newthread)
-        # newthread.start()
-        Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
-
+    try:
+        max_threads = multiprocessing.cpu_count()
+        tempdir = get_value("Temp_Dir")
+        outdir = get_value("Output_Dir")
+        folderpath = ""
+        oriurl = url
+        chrome_options = Options()
+        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--disable-gpu')
+        logmini.info("尝试获取网页数据,这可能需要较长的时间")
+        driver = webdriver.Chrome(options=chrome_options)
+        driver.get(url)
+        html = driver.execute_script('return document.documentElement.outerHTML')
+        soup = BeautifulSoup(html, "html.parser")
+        urls = soup.find_all("option")
+        page = 0
+        driver.close()  # 记得关闭，否则占用内存资源
+        threads = []
+        for url in urls:
+            page += 1
+            logmini.info(url.getText())
+            imgurl = "https:" + url.__getitem__('value')
+            logmini.info(imgurl)
+            folderpath = title + "_" + chapter
+            try:
+                if not os.path.exists(tempdir):
+                    os.mkdir(tempdir)
+                if not os.path.exists(outdir):
+                    os.mkdir(outdir)
+                if not os.path.exists(tempdir + folderpath):
+                    os.mkdir(tempdir + folderpath)
+            except Exception as e:
+                logmini.warning(e)
+            filepath = str(page).zfill(3)
+            # 此处多线程决定废弃
+            # newthread = thread_download(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
+            # while True:
+            #     if (len(threading.enumerate()) < max_threads):
+            #         break
+            # threads.append(newthread)
+            # newthread.start()
+            Downpic(ua.random, oriurl, imgurl, tempdir + folderpath + "/" + filepath, logmini, logid)
+            if ext == "pdf":
+                folder2pdf(folderpath, logmini, logid)
+    except Exception as e:
+        logmini.error("%s_%s 下载失败:%s" % (title, chapter, e))
+        SetLogStatus(logid, "uncompleted")
+        driver.close()
     # for t in threads:
     #     t.join()
-
-    if ext == "pdf":
-        folder2pdf(folderpath, logmini, logid)
 
 
 def printerrorlist():

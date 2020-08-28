@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<!--在这里总共用到了一下变量 emailmd5 username authorization email authcolor s_host s_port s_pass kindle_email-->
+<html>
+<style>
+	.r_image{
+		width:auto;
+		height:150px;
+		border-radius: 20px;
+	}
+	.info{
+		font-size:20px;
+		color:#6F6F6F;
+	}
+	#back1{
+			display: inline-block;
+			font-size:35px;
+			line-height:35px;
+			text-align:center;
+			position:relative;
+			font-weight:bold;
+			color:#6F6F6F;	
+			cursor:pointer;
+	}
+</style>
+<head>	
+	<link rel="stylesheet" type="text/css" href="static/css/loglist.css">
+	<meta charset="utf-8">
+	<title>搜索结果</title>
+</head>
+	<h1>搜索结果</h1>
+	
+	<div id="logpanel">
+		<div id="back1"> 
+			<a onclick="javascript:history.go(-1);" style="font-size:20px;">返回</a>
+		</div>
+		<div class="info">您当前正在浏览第{{ page }}页的搜索结果。</div>
+		<div class="info"><a href="/search?text={{ search }}&page={{ nextpage }}">点击浏览第{{ nextpage }}页</a></div>
+		<table width="300">
+		<tr>
+			<th></th>
+			<th>标题</th>
+			<th>作者</th>
+			<th>最近更新</th>
+			<th>下载链接</th>
+		</tr>
+		{{ table|safe }}
+		</table>
+		
+	</div>
+
+</html>

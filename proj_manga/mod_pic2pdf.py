@@ -5,7 +5,7 @@ from proj_manga.mod_file import delfile, delfolder
 from proj_manga.mod_imports import *
 from proj_manga.mod_mysql import SetLogStatus
 from proj_manga.mod_settings import get_value
-maxsize = 51904512 #单位Byte 换算49.5MB 0.5MB用于信件本身
+maxsize = 47185920 #单位Byte 换算45MB 5MB用于信件本身
 
 def mergefiles(path, output_filename, logmini):
         # 遍历目录下的所有pdf将其合并输出到一个pdf文件中，输出的pdf文件默认带书签，书签名为之前的文件名
@@ -54,28 +54,52 @@ def mergefiles(path, output_filename, logmini):
             merger.close()
         return 0
 
+from goto import with_goto
+@with_goto
 def Downpic(ua, referer, oripath, targetpath, logmini, logid):
+    requests.adapters.DEFAULT_RETRIES = 5
+    retires = 3
     exts = oripath.split(".")
     ext = exts[len(exts) - 1]
+    # noinspection PyUnresolvedReferences
+    label .begin
     headers = {"User-Agent": ua, "Referer": referer}
-    response = requests.get(url=oripath, headers=headers, timeout=20)
-    if response.status_code != 200:
-        logmini.error("图片下载失败：" + oripath)
-        logmini.error("响应状态 %s" % (str(response.status_code)))
-        logmini.error("Thread-图片下载失败")
-        SetLogStatus(logid, "uncompleted")
-        return -1
     try:
+        response = requests.get(url=oripath, headers=headers, timeout=20)
+        if response.status_code != 200:
+            if retires > 0:
+                logmini.warning("Thread-正在重试")
+                retires -= 1
+                time.sleep(3)
+                # noinspection PyUnresolvedReferences
+                goto .begin
+            logmini.error("图片下载失败：" + oripath)
+            logmini.error("响应状态 %s" % (str(response.status_code)))
+            logmini.error("Thread-图片下载失败")
+            SetLogStatus(logid, "uncompleted")
+            return -1
         pic = Image.open(BytesIO(response.content))
         pic.save(targetpath + "." + ext)
         response.close()
     except IOError as e:
+        if retires > 0:
+            logmini.warning("Thread-正在重试")
+            retires -= 1
+            time.sleep(3)
+            # noinspection PyUnresolvedReferences
+            goto .begin
         logmini.error("无法保存文件。" + str(e))
         logmini.error("Thread-图片下载失败")
         SetLogStatus(logid, "uncompleted")
         response.close()
         return -1
     except:
+        if retires > 0:
+            logmini.warning("Thread-正在重试")
+            retires -= 1
+            time.sleep(3)
+            # noinspection PyUnresolvedReferences
+            goto .begin
         logmini.error("未知错误 " + str(sys.exc_info()))
         logmini.error("Thread-图片下载失败")
         SetLogStatus(logid, "uncompleted")
@@ -83,6 +107,37 @@ def Downpic(ua, referer, oripath, targetpath, logmini, logid):
         return -1
     logmini.info("Thread: 图片下载成功")
     return 1
+
+
+@with_goto
+def GetPic_Base64(referer, url):
+    base64_data = -1
+    requests.adapters.DEFAULT_RETRIES = 5
+    # print("下载图片%s" % url)
+    # noinspection PyUnresolvedReferences
+    label .begin
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.135 Safari/537.36"
+                             " Edg/84.0.522.63", "Referer": referer}
+    try:
+        response = requests.get(url=url, headers=headers, timeout=20)
+        if response.status_code != 200:
+            return -1
+        pic = Image.open(BytesIO(response.content))
+        f = BytesIO()
+        pic.save(f, 'png')
+        data = f.getvalue()
+        f.close()
+        import base64
+        base64_data = base64.b64encode(data)
+        base64_data = 'data:image/jpeg;base64,%s' % str(base64_data, encoding = "utf-8")
+        # print("下载成功")
+        response.close()
+    except Exception as e:
+        # print("下载失败 %s" % e)
+        response.close()
+    finally:
+        return base64_data
 
 
 def folder2pdf(folderpath, logmini, logid):
