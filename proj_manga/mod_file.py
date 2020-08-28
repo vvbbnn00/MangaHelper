@@ -30,7 +30,10 @@ def delfolder(path, fileonly=False):
     except OSError as e:
         for i in os.listdir(os.path.abspath(path)):
             if os.path.isfile("%s/%s" % (os.path.abspath(path), i)):
-                os.remove("%s/%s" % (os.path.abspath(path), i))
+                try:
+                    os.remove("%s/%s" % (os.path.abspath(path), i))
+                except:
+                    continue
             else:
                 delfolder("%s/%s" % (os.path.abspath(path), i))
     except Exception as e:
@@ -38,7 +41,10 @@ def delfolder(path, fileonly=False):
     finally:
         if not fileonly:
             if ret == 0:
-                os.rmdir(os.path.abspath(path))
+                try:
+                    os.rmdir(os.path.abspath(path))
+                except Exception as e:
+                    return e
         return ret
 
 
