@@ -45,10 +45,10 @@ import MySQLdb
 # noinspection PyUnresolvedReferences
 from flask import Flask
 # noinspection PyUnresolvedReferences
-from PyQt5 import QtCore, QtWidgets
-# noinspection PyUnresolvedReferences
-from PyQt5.QtWidgets import *
-# noinspection PyUnresolvedReferences
+# from PyQt5 import QtCore, QtWidgets
+# # noinspection PyUnresolvedReferences
+# from PyQt5.QtWidgets import *
+# # noinspection PyUnresolvedReferences
 import random
 # noinspection PyUnresolvedReferences
 from binascii import b2a_hex, a2b_hex

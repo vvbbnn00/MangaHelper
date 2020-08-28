@@ -265,20 +265,3 @@ def GetLog(logid, token, fromsystem=False):
     return text
 
 
-# except Exception as e:
-#    return "请求日记失败: %s" % (e)
-
-
-# if __name__ == '__main__':
-#     initialize()
-#     print(UpdateUser("admin", "faL1p9n3dP", "vvbbnn00@foxmail.com", "smtp.qq.com", "uolurlmtzximbaga", "管理员", "465", "vvbbnn00@kindle.cn"))
-#     print(GetUser("admin"))
-#     print(CheckUser("admin", "faL1p9n3dP"))
-#     print(GetUsername(CheckUser("admin", "faL1p9n3dP")))
-#     print(CreateTask("https://manhua.dmzj.com/huiyedaxiaojiexiangrangwogaobaitiancaimendelianait", "", "", "false","","",CheckUser("admin", "faL1p9n3dP")))
-#     print(GetLogListFromToken(CheckUser("admin", "faL1p9n3dP")))
-#     print(SetLogStatus("downlog_admin_20200826160607", "complete"))
-#     print(GetLogStatus("downlog_admin_20200826160607", CheckUser("admin", "faL1p9n3dP")))
-#     while 1:
-#         pass
-#     pass

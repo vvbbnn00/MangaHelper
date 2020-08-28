@@ -219,9 +219,9 @@ def testmail():
         if result == 0:
             return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送成功，三秒后自动返回"
         else:
-            return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送失败:%s，三秒后自动返回" % (result)
+            return render_template(html_error, error_code="500", error_description="邮件发送失败:%s" % result)
     except Exception as e:
-        return "<meta http-equiv=\"refresh\" content=\"3;url='user'\" > 邮件发送失败:%s，三秒后自动返回" % (e)
+        return render_template(html_error, error_code="500", error_description="邮件发送失败:%s" % e)
 
 
 @app.route('/search')
