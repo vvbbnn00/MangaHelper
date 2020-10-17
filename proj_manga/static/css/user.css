@@ -1,0 +1,208 @@
+	body,p,div,ul,li,h1,h2,h3,h4,h5,h6{
+		margin:0;
+		padding: 0;
+	}
+	body{
+		background: #E9E9E9; 
+		height: 100%;
+		vertical-align:middle;
+		text-align:center;
+	}
+	#main_panel{
+		vertical-align:middle;
+		height:100%;
+		display: inline-block;
+		
+	}
+	#notification{
+		color: red;
+		font-weight:bold;
+		display: inline-block;
+	}
+	#help{
+		display: inline-block;
+		position:relative;
+		width:60%;
+		border:solid #ccc 2px;
+		border-radius: 3px;
+		padding-right: 20px;
+		padding-left: 20px;
+		padding-top: 10px;
+		padding-bottom: 20px;
+		border-radius: 20px;
+	}
+	
+	#userpanel{
+		padding-top:1%;
+		padding-bottom:1%;
+		padding-left:1%;
+		padding-right:1%;
+		background: #FFF;
+		width: 60%;
+		display: inline-block;
+		vertical-align:middle;
+		border-radius: 20px;
+		position: relative;
+		box-shadow: 10px 10px 10px #CCCCCC;
+	}
+	#gravatar_id{
+		vertical-align:middle;
+		display: inline-block;
+		width: 25%;
+		height: 100%;
+		position: relative;
+		text-align: center;
+	}
+	#gravatar{
+		display: inline-block;
+		box-shadow: 0 6px 15px #CCCCCC, 0 6px 15px #CCCCCC;
+		border-radius: 50%;
+		border-top-left-radius: 50%;
+		border-top-right-radius: 50%;
+		border-bottom-right-radius: 50%;
+		border-bottom-left-radius: 50%;
+		width: 40%;
+		height: 40%;
+		position: relative;
+	}
+	#userinfo{
+		text-align:center;
+		vertical-align:middle;
+		display: inline-block;
+		position: relative;
+		width:30%; 
+		height:100%;
+
+	}
+	#toolbox{
+		vertical-align:middle;
+		display: inline-block;
+		position: relative;
+		width:30%; 
+		height:100%;
+
+	}
+	#user{
+		text-align: center;
+		position: relative;
+		font-size: 24px;
+	}
+	#auth{
+		color:#fafafa;
+		padding: 1px 8px;
+		display:inline-block;
+		border-radius: 100px;
+		text-align: center;
+		position: relative;
+		font-size: 15px;
+		box-shadow: 2px 2px 2px #CCCCCC;
+	}
+	#btn_logout{
+		text-align:center;
+		padding-top: 7%;
+		padding-bottom: 7%;
+		position: relative;
+		width: 100%;
+		height: 100%;
+		background: rgba(0,0,0,.1);
+		border:solid #ccc 1px;
+		border-radius: 100px;
+		box-shadow: 1px 1px 1px #CCCCCC;
+	}
+	#btn_logout:hover{
+		cursor: pointer;
+		background:#D8D8D8;
+	}
+	#btn_logout:active{
+		cursor: pointer;
+		background:#A2A2A2;
+	}
+	#title_id{
+		display:inline-block;
+		position: relative;
+
+		color:#6F6F6F;	
+		font-size:20px;
+		font-weight:bold;
+	}
+	#info{
+		width:100%;
+		display:inline-block;
+		position: relative;
+		color:#6F6F6F;	
+		font-size:17px;
+		line-height:30px;
+	}
+	#scale{
+		position: relative;
+		color:#6F6F6F;	
+		font-size:17px;
+		line-height:30px;
+	}
+	#input{
+		position: relative;
+		display:inline-block;
+		width:70%;
+		border:solid #ccc 1px;
+		border-radius: 100px;
+		color:#6F6F6F;
+		font-size: 15px;
+	}
+	#smallinput{
+		position: relative;
+		top:0px;
+		height:20px;
+		width:15%;
+		border:solid #ccc 1px;
+		border-radius: 100px;
+		color:#6F6F6F;
+		font-size: 15px;
+	}
+	#btn_submit{
+		display:inline-block;
+		position: relative;
+		width:100%;
+		padding-top: 7%;
+		padding-bottom: 7%;
+		background: rgba(0,0,0,.1);
+		border:solid #ccc 1px;
+		border-radius: 100px;
+		box-shadow: 1px 1px 1px #CCCCCC;
+	}
+	#btn_test{
+		position: relative;
+		display:inline-block;
+		padding-top: 7%;
+		width:100%;
+		padding-bottom: 7%;
+		background: rgba(0,0,0,.1);
+		border:solid #ccc 1px;
+		border-radius: 100px;
+		box-shadow: 1px 1px 1px #CCCCCC;
+
+	}
+	.buttons{
+		padding-top: 5%;
+		padding-bottom: 5%;
+		display: inline-block;
+		width: 40%;
+		height: 100%;
+		display:inline-block;
+	}
+	#btn_test:hover{
+		cursor: pointer;
+		background:#D8D8D8;
+	}
+	#btn_test:active{
+		cursor: pointer;
+		background:#A2A2A2;
+	}
+	#btn_submit:hover{
+		cursor: pointer;
+		background:#D8D8D8;
+	}
+	#btn_submit:active{
+		cursor: pointer;
+		background:#A2A2A2;
+	}
+
